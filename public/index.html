@@ -1202,6 +1202,7 @@ async function hostStartGame() {
 }
 
 async function fetchSongs() {
+  console.log('🎵 fetchSongs started. Genres:', selectedGenres, 'Decades:', selectedDecades);
   const allTracks = [];
   const promises = [];
   for (const decade of selectedDecades) {
@@ -1215,13 +1216,16 @@ async function fetchSongs() {
       });
     }
   }
+  console.log(`📊 Running ${promises.length} search queries...`);
   await Promise.all(promises);
+  console.log(`📊 After searches: ${allTracks.length} total tracks`);
   const fresh = allTracks.filter(t => !playedIds.has(t.id));
   const shuffled = shuffleArr(fresh);
   shuffled.sort((a,b) => (b.popularity + Math.random()*15) - (a.popularity + Math.random()*15));
   const top = shuffled.slice(0, 120);
-  console.log(`Song pool: ${top.length} tracks`);
+  console.log(`🎵 Final pool: ${top.length} tracks (after dedup & sort)`);
   if (top.length < tileCount) {
+    console.error(`❌ Not enough songs: ${top.length} < ${tileCount}`);
     showErr('lobbyErr', `❌ נמצאו רק ${top.length} שירים — נדרשים לפחות ${tileCount}. נסה להוסיף ז\'אנרים או עשורים.`);
     return [];
   }
@@ -1232,7 +1236,8 @@ async function searchTracks(q, year, allTracks, ignoreDecade, limit = 10) {
   try {
     const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=${limit}`;
     const r = await spotifyFetch(url);
-    if (!r || !r.ok) { console.warn(`searchTracks failed (${r?.status}): ${q}`); return; }
+    if (!r) { console.warn(`searchTracks timeout (no response): ${q}`); return; }
+    if (!r.ok) { console.warn(`searchTracks failed (${r.status}): ${q}`); return; }
     const data = await r.json();
     if (data.error) { console.warn('Spotify error for query:', q, data.error); return; }
     const before = allTracks.length;
@@ -1242,8 +1247,9 @@ async function searchTracks(q, year, allTracks, ignoreDecade, limit = 10) {
         allTracks.push({ title:t.name, artist:t.artists.map(a=>a.name).join(', '), uri:t.uri, id:t.id, popularity:t.popularity||0, albumArt:t.album?.images?.[0]?.url||'', releaseYear:ry, durationMs:t.duration_ms||180000, lang: 'he' });
       }
     });
-    console.log(`"${q}" → ${allTracks.length - before} new tracks (total: ${allTracks.length})`);
-  } catch(e) { console.warn('searchTracks exception:', q, e.message); }
+    const added = allTracks.length - before;
+    console.log(`✓ "${q}" → ${added} tracks added (total: ${allTracks.length})`);
+  } catch(e) { console.error('searchTracks exception:', q, e.message); }
 }
 
 async function fetchRecommendations(genre, year, allTracks) {
