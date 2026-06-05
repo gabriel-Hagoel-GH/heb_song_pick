@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <meta name="theme-color" content="#0a0a0f"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-title" content="נחש את השיר"/>
+<meta name="apple-mobile-web-app-title" content="שיר בריבוע"/>
 <link rel="manifest" href="manifest.json"/>
-<title>נחש את השיר</title>
+<title>שיר בריבוע</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500&family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <script src="/socket.io/socket.io.js"></script>
 <style>
@@ -344,8 +344,35 @@ input::placeholder{color:var(--muted)}
   <!-- ══ HOME ══ -->
   <div class="screen active" id="sHome">
     <div style="margin:auto;text-align:center;width:100%">
-      <div style="font-size:4rem;margin-bottom:.15rem">🎵</div>
-      <h1>נחש את השיר</h1>
+      <!-- Logo: musical note inside a square -->
+      <div style="margin:0 auto .15rem;width:90px;height:90px">
+        <svg viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="sq" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#7c3aed"/>
+              <stop offset="100%" style="stop-color:#a855f7"/>
+            </linearGradient>
+            <linearGradient id="note" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#ffffff"/>
+              <stop offset="100%" style="stop-color:#e9d5ff"/>
+            </linearGradient>
+          </defs>
+          <!-- Rounded square background -->
+          <rect x="5" y="5" width="80" height="80" rx="18" ry="18" fill="url(#sq)"/>
+          <!-- Subtle inner glow -->
+          <rect x="5" y="5" width="80" height="80" rx="18" ry="18" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/>
+          <!-- Musical note -->
+          <g fill="url(#note)">
+            <!-- Note head -->
+            <ellipse cx="34" cy="62" rx="9" ry="6.5" transform="rotate(-15 34 62)"/>
+            <!-- Note stem -->
+            <rect x="42" y="28" width="4" height="36" rx="2"/>
+            <!-- Note flag -->
+            <path d="M46 28 Q68 36 62 52 Q54 42 46 44 Z"/>
+          </g>
+        </svg>
+      </div>
+      <h1>שיר בריבוע</h1>
       <div class="ver">v1.0 · מולטיפלייר</div>
       <p class="sub">שמע את השיר. בחר את הריבוע הנכון.<br>הראשון שעונה מקבל הכי הרבה נקודות.</p>
       <div class="card" style="margin-bottom:.6rem">
@@ -634,14 +661,46 @@ const SCOPES = 'user-read-email user-read-private user-modify-playback-state use
 
 const GENRES = ['פופ ישראלי','רוק ישראלי','מזרחית','מסיבה','להיטי כל הזמנים','פופ שנות ה-90','ישראלי חדש','ילדים ונוסטלגיה'];
 const GENRE_QUERIES = {
-  'פופ ישראלי':['Noa Kirel','Idan Raichel','Shiri Maimon','Static and Ben El','Israeli pop','Ninet Tayeb','Moshe Peretz 2010','Israeli pop hits'],
-  'רוק ישראלי':['Arik Einstein','Shalom Hanoch','Kaveret band','Mashina Israeli rock','Aviv Geffen','HaDag Nachash','Ehud Banai','Israeli rock'],
-  'מזרחית':['Eyal Golan','Zohar Argov','Sarit Hadad','Moshe Peretz mizrahi','Amir Benayoun','Margalit Zanani','Israeli mizrahi music','Daklon'],
-  'מסיבה':['Static and Ben El','Harel Moyal','Tikvah Shesh','Lior Narkis dance','Israeli dance music','Noa Kirel dance','Israeli club hits'],
-  'להיטי כל הזמנים':['Naomi Shemer','Yehoram Gaon','Shlomo Artzi','Arik Einstein classics','Israeli evergreen hits','Gali Atari','Israeli classics'],
-  'פופ שנות ה-90':['Rita Israeli 1990','Sarit Hadad 1990','Israeli pop 1990','Boaz Sharabi','Rami Kleinstein','Israeli hits 1990','Idan Raichel 1990'],
-  'ישראלי חדש':['Omer Adam','Asaf Avidan','Noga Erez','Noa Kirel 2020','Natan Goshen','Israeli music 2015','Israeli indie 2018'],
-  'ילדים ונוסטלגיה':['Gali Atari children','Israeli children songs','Lehakat Tzvaiot','Israeli nursery rhymes','Habiluim songs','Israeli nostalgia hits'],
+  'פופ ישראלי':[
+    'Noa Kirel','Idan Raichel','Shiri Maimon','Static and Ben El',
+    'Ninet Tayeb','Moshe Peretz','Sarit Hadad pop','Lior Narkis',
+    'Omer Adam pop','Israeli pop music','Eyal Golan pop','Bar Zohar'
+  ],
+  'רוק ישראלי':[
+    'Arik Einstein','Shalom Hanoch','Kaveret','Mashina',
+    'Aviv Geffen','HaDag Nachash','Ehud Banai','Rami Fortis',
+    'Ethnix','Rockfour','Israeli rock','Habiluim'
+  ],
+  'מזרחית':[
+    'Eyal Golan','Zohar Argov','Sarit Hadad','Moshe Peretz',
+    'Amir Benayoun','Margalit Zanani','Daklon','Zehava Ben',
+    'Dudu Aharon','Avi Bitter','Israeli mizrahi','Etti Ankri'
+  ],
+  'מסיבה':[
+    'Static and Ben El','Harel Moyal','Lior Narkis','Noa Kirel',
+    'Omer Adam dance','Israeli dance','Tikvah Shesh','Subliminal',
+    'Fortis dance','Bar Zohar dance','Israeli club','Static Ben El Thug'
+  ],
+  'להיטי כל הזמנים':[
+    'Naomi Shemer','Yehoram Gaon','Shlomo Artzi','Arik Einstein',
+    'Gali Atari','Matti Caspi','Yaffa Yarkoni','Danny Litani',
+    'Israeli classics','Shoshana Damari','Haim Hefer','Nurit Galron'
+  ],
+  'פופ שנות ה-90':[
+    'Rita Israeli','Sarit Hadad','Boaz Sharabi','Rami Kleinstein',
+    'Yehuda Poliker','Gidi Gov','Idan Raichel early','Yael Levy',
+    'Israeli 1990s hits','Shlomo Artzi 1990','Ehud Banai 1990','Avraham Tal'
+  ],
+  'ישראלי חדש':[
+    'Omer Adam','Asaf Avidan','Noga Erez','Noa Kirel',
+    'Natan Goshen','Hanan Ben Ari','Ishay Ribo','Kobi Peretz',
+    'Eden Alene','Shefita','Israeli new music','Roy Kafri'
+  ],
+  'ילדים ונוסטלגיה':[
+    'Gali Atari','Israeli children songs','Lehakat Tzvaiot',
+    'Ofra Haza early','Ilanit','Yardena Arazi','Israeli nostalgia',
+    'Naomi Shemer children','Gevatron','Israeli folk songs','Yehoram Gaon children','Purim songs Israel'
+  ],
 };
 const GENRE_SEEDS = {
   'פופ ישראלי':null,'רוק ישראלי':null,'מזרחית':null,'מסיבה':null,
