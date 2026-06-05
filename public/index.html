@@ -660,51 +660,17 @@ const REDIRECT_URI = window.location.origin + '/';
 const SCOPES = 'user-read-email user-read-private user-modify-playback-state user-read-playback-state';
 
 const GENRES = ['פופ ישראלי','רוק ישראלי','מזרחית','מסיבה','להיטי כל הזמנים','פופ שנות ה-90','ישראלי חדש','ילדים ונוסטלגיה'];
-const GENRE_QUERIES = {
-  'פופ ישראלי':[
-    'Noa Kirel','Idan Raichel','Shiri Maimon','Static and Ben El',
-    'Ninet Tayeb','Moshe Peretz','Sarit Hadad pop','Lior Narkis',
-    'Omer Adam pop','Israeli pop music','Eyal Golan pop','Bar Zohar'
-  ],
-  'רוק ישראלי':[
-    'Arik Einstein','Shalom Hanoch','Kaveret','Mashina',
-    'Aviv Geffen','HaDag Nachash','Ehud Banai','Rami Fortis',
-    'Ethnix','Rockfour','Israeli rock','Habiluim'
-  ],
-  'מזרחית':[
-    'Eyal Golan','Zohar Argov','Sarit Hadad','Moshe Peretz',
-    'Amir Benayoun','Margalit Zanani','Daklon','Zehava Ben',
-    'Dudu Aharon','Avi Bitter','Israeli mizrahi','Etti Ankri'
-  ],
-  'מסיבה':[
-    'Static and Ben El','Harel Moyal','Lior Narkis','Noa Kirel',
-    'Omer Adam dance','Israeli dance','Tikvah Shesh','Subliminal',
-    'Fortis dance','Bar Zohar dance','Israeli club','Static Ben El Thug'
-  ],
-  'להיטי כל הזמנים':[
-    'Naomi Shemer','Yehoram Gaon','Shlomo Artzi','Arik Einstein',
-    'Gali Atari','Matti Caspi','Yaffa Yarkoni','Danny Litani',
-    'Israeli classics','Shoshana Damari','Haim Hefer','Nurit Galron'
-  ],
-  'פופ שנות ה-90':[
-    'Rita Israeli','Sarit Hadad','Boaz Sharabi','Rami Kleinstein',
-    'Yehuda Poliker','Gidi Gov','Idan Raichel early','Yael Levy',
-    'Israeli 1990s hits','Shlomo Artzi 1990','Ehud Banai 1990','Avraham Tal'
-  ],
-  'ישראלי חדש':[
-    'Omer Adam','Asaf Avidan','Noga Erez','Noa Kirel',
-    'Natan Goshen','Hanan Ben Ari','Ishay Ribo','Kobi Peretz',
-    'Eden Alene','Shefita','Israeli new music','Roy Kafri'
-  ],
-  'ילדים ונוסטלגיה':[
-    'Gali Atari','Israeli children songs','Lehakat Tzvaiot',
-    'Ofra Haza early','Ilanit','Yardena Arazi','Israeli nostalgia',
-    'Naomi Shemer children','Gevatron','Israeli folk songs','Yehoram Gaon children','Purim songs Israel'
-  ],
-};
-const GENRE_SEEDS = {
-  'פופ ישראלי':null,'רוק ישראלי':null,'מזרחית':null,'מסיבה':null,
-  'להיטי כל הזמנים':null,'פופ שנות ה-90':null,'ישראלי חדש':null,'ילדים ונוסטלגיה':null
+
+// Playlist search queries per genre — Spotify will return real curated playlists
+const GENRE_PLAYLIST_QUERIES = {
+  'פופ ישראלי':   ['Israeli pop hits','פופ ישראלי','ישראלי pop playlist','Israeli pop 2020s','hot Israeli pop'],
+  'רוק ישראלי':   ['Israeli rock','רוק ישראלי','Israeli rock classics','rock ישראלי playlist','Israeli indie rock'],
+  'מזרחית':       ['מוזיקה מזרחית','Israeli mizrahi','מזרחי hits','mizrahi music Israel',' mizrahi pop playlist'],
+  'מסיבה':        ['Israeli party hits','מסיבה ישראלית','Israeli dance playlist','ישראלי dance hits','Israeli club'],
+  'להיטי כל הזמנים': ['Israeli classics','להיטים ישראלים','Israeli all time hits','Israeli legends','Israeli golden hits'],
+  'פופ שנות ה-90': ['Israeli 90s','ישראלי שנות ה90','Israeli nineties hits','90s Israel pop','Israeli retro 90'],
+  'ישראלי חדש':   ['Israeli new music 2024','חדש ישראלי','new Israeli hits','Israeli rising artists','ישראלי 2024'],
+  'ילדים ונוסטלגיה': ['Israeli children songs','שירי ילדים ישראלי','Israeli kids music','נוסטלגיה ישראלית','Israeli nostalgia'],
 };
 const DECADES = ['1960s','1970s','1980s','1990s','2000s','2010s','2020s'];
 const MEDALS  = ['🥇','🥈','🥉'];
@@ -1201,72 +1167,110 @@ async function hostStartGame() {
   socket.emit('songs_ready', { songs: songsForServer });
 }
 
-async function fetchSongs() {
-  console.log('🎵 fetchSongs started. Genres:', selectedGenres, 'Decades:', selectedDecades);
-  const allTracks = [];
-  const promises = [];
-  for (const decade of selectedDecades) {
-    const year = parseInt(decade);
-    for (const genre of selectedGenres) {
-      const queries = GENRE_QUERIES[genre] || [genre];
-      queries.forEach(q => {
-        // For Hebrew/Israeli music: search with year filter AND without (more results)
-        promises.push(searchTracks(q, year, allTracks, true, 20));        // ignoreDecade — get all years
-        promises.push(searchTracks(`${q} year:${year}-${year+9}`, year, allTracks, false, 20)); // with decade
+// ── Playlist-based song fetching ───────────────────────────
+
+// Step 1: search playlists for a query → return up to `maxPlaylists` playlist IDs
+async function searchPlaylists(query, maxPlaylists = 4) {
+  try {
+    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=playlist&limit=${maxPlaylists}&market=IL`;
+    const r = await spotifyFetch(url);
+    if (!r || !r.ok) { console.warn(`searchPlaylists failed (${r?.status}): ${query}`); return []; }
+    const data = await r.json();
+    if (data.error) { console.warn('Spotify error searching playlists:', query, data.error); return []; }
+    const ids = (data.playlists?.items || []).filter(Boolean).map(p => p.id);
+    console.log(`🎵 Playlists for "${query}": ${ids.length} found`);
+    return ids;
+  } catch(e) { console.error('searchPlaylists exception:', query, e.message); return []; }
+}
+
+// Step 2: fetch tracks from a playlist, filter by decade, deduplicate into allTracks
+async function fetchPlaylistTracks(playlistId, decadeYears, allTracks, seenIds) {
+  try {
+    // Fetch up to 100 tracks (one page is enough for our pool)
+    const url = `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=100&market=IL&fields=items(track(id,name,uri,duration_ms,popularity,album(release_date,images),artists))`;
+    const r = await spotifyFetch(url);
+    if (!r || !r.ok) { console.warn(`fetchPlaylistTracks failed (${r?.status}): ${playlistId}`); return 0; }
+    const data = await r.json();
+    if (data.error) { console.warn('Spotify error fetching playlist:', playlistId, data.error); return 0; }
+    let added = 0;
+    (data.items || []).forEach(item => {
+      const t = item?.track;
+      if (!t || !t.id || !t.uri) return;
+      if (seenIds.has(t.id)) return;
+      const ry = parseInt((t.album?.release_date || '0000').slice(0, 4));
+      // Filter by selected decades — must match at least one selected decade range
+      const matchesDecade = decadeYears.length === 0 || decadeYears.some(y => ry >= y && ry <= y + 9);
+      if (!matchesDecade) return;
+      seenIds.add(t.id);
+      allTracks.push({
+        title: t.name,
+        artist: t.artists.map(a => a.name).join(', '),
+        uri: t.uri,
+        id: t.id,
+        popularity: t.popularity || 0,
+        albumArt: t.album?.images?.[0]?.url || '',
+        releaseYear: ry,
+        durationMs: t.duration_ms || 180000,
+        lang: 'he',
       });
+      added++;
+    });
+    console.log(`  ✓ Playlist ${playlistId} → ${added} tracks added`);
+    return added;
+  } catch(e) { console.error('fetchPlaylistTracks exception:', playlistId, e.message); return 0; }
+}
+
+async function fetchSongs() {
+  console.log('🎵 fetchSongs (playlist mode) — Genres:', selectedGenres, 'Decades:', selectedDecades);
+
+  // Pre-parse decade years once
+  const decadeYears = selectedDecades.map(d => parseInt(d)); // e.g. [1990, 2000]
+
+  const allTracks = [];
+  const seenIds = new Set(playedIds); // also exclude already-played songs
+
+  // For each genre, search multiple playlist queries in parallel
+  const playlistIdSet = new Set();
+  const playlistSearchPromises = [];
+
+  for (const genre of selectedGenres) {
+    const queries = GENRE_PLAYLIST_QUERIES[genre] || [genre];
+    for (const q of queries) {
+      playlistSearchPromises.push(
+        searchPlaylists(q, 4).then(ids => ids.forEach(id => playlistIdSet.add(id)))
+      );
     }
   }
-  console.log(`📊 Running ${promises.length} search queries...`);
-  await Promise.all(promises);
-  console.log(`📊 After searches: ${allTracks.length} total tracks`);
-  const fresh = allTracks.filter(t => !playedIds.has(t.id));
-  const shuffled = shuffleArr(fresh);
-  shuffled.sort((a,b) => (b.popularity + Math.random()*15) - (a.popularity + Math.random()*15));
-  const top = shuffled.slice(0, 120);
-  console.log(`🎵 Final pool: ${top.length} tracks (after dedup & sort)`);
+
+  console.log(`📊 Searching playlists for ${selectedGenres.length} genre(s)...`);
+  await Promise.all(playlistSearchPromises);
+  const playlistIds = [...playlistIdSet];
+  console.log(`📋 Total unique playlists found: ${playlistIds.length}`);
+
+  if (playlistIds.length === 0) {
+    console.error('❌ No playlists found at all');
+    showErr('lobbyErr', '❌ לא נמצאו פלייליסטים. בדוק חיבור לספוטיפיי.');
+    return [];
+  }
+
+  // Fetch all playlists in parallel (cap at 20 to avoid rate limits)
+  const toFetch = playlistIds.slice(0, 20);
+  await Promise.all(toFetch.map(id => fetchPlaylistTracks(id, decadeYears, allTracks, seenIds)));
+
+  console.log(`📊 After playlist fetch: ${allTracks.length} total tracks`);
+
+  // Sort by popularity with slight randomness for variety
+  allTracks.sort((a, b) => (b.popularity + Math.random() * 20) - (a.popularity + Math.random() * 20));
+  const top = allTracks.slice(0, 150);
+  console.log(`🎵 Final pool: ${top.length} tracks`);
+
   if (top.length < tileCount) {
     console.error(`❌ Not enough songs: ${top.length} < ${tileCount}`);
     showErr('lobbyErr', `❌ נמצאו רק ${top.length} שירים — נדרשים לפחות ${tileCount}. נסה להוסיף ז\'אנרים או עשורים.`);
     return [];
   }
+
   return shuffleArr(top);
-}
-
-async function searchTracks(q, year, allTracks, ignoreDecade, limit = 10) {
-  try {
-    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=${limit}`;
-    const r = await spotifyFetch(url);
-    if (!r) { console.warn(`searchTracks timeout (no response): ${q}`); return; }
-    if (!r.ok) { console.warn(`searchTracks failed (${r.status}): ${q}`); return; }
-    const data = await r.json();
-    if (data.error) { console.warn('Spotify error for query:', q, data.error); return; }
-    const before = allTracks.length;
-    (data.tracks?.items || []).forEach(t => {
-      const ry = parseInt((t.album?.release_date||'0000').slice(0,4));
-      if ((ignoreDecade || (ry >= year && ry <= year+9)) && !allTracks.find(x=>x.id===t.id)) {
-        allTracks.push({ title:t.name, artist:t.artists.map(a=>a.name).join(', '), uri:t.uri, id:t.id, popularity:t.popularity||0, albumArt:t.album?.images?.[0]?.url||'', releaseYear:ry, durationMs:t.duration_ms||180000, lang: 'he' });
-      }
-    });
-    const added = allTracks.length - before;
-    console.log(`✓ "${q}" → ${added} tracks added (total: ${allTracks.length})`);
-  } catch(e) { console.error('searchTracks exception:', q, e.message); }
-}
-
-async function fetchRecommendations(genre, year, allTracks) {
-  const seed = GENRE_SEEDS[genre]; if (!seed) return;
-  try {
-    const params = new URLSearchParams({ seed_genres:seed, limit:10, target_popularity:70, min_popularity:40 });
-    const r = await spotifyFetch(`https://api.spotify.com/v1/recommendations?${params}`);
-    if (!r || !r.ok) return;
-    const data = await r.json();
-    if (data.error) return;
-    (data.tracks||[]).forEach(t => {
-      const ry = parseInt((t.album?.release_date||'0000').slice(0,4));
-      if (ry>=year && ry<=year+9 && !allTracks.find(x=>x.id===t.id)) {
-        allTracks.push({ title:t.name, artist:t.artists.map(a=>a.name).join(', '), uri:t.uri, id:t.id, popularity:t.popularity||0, albumArt:t.album?.images?.[0]?.url||'', releaseYear:ry, durationMs:t.duration_ms||180000, lang: 'he' });
-      }
-    });
-  } catch {}
 }
 
 // ── Host Game ──────────────────────────────────────────────
