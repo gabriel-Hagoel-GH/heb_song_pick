@@ -662,16 +662,16 @@ const SCOPES = 'user-read-email user-read-private user-modify-playback-state use
 const GENRES = ['פופ ישראלי','רוק ישראלי','מזרחית','מסיבה','להיטי כל הזמנים','פופ שנות ה-90','ישראלי חדש','ילדים ונוסטלגיה'];
 
 // Playlist search queries per genre — Spotify will return real curated playlists
-// Search queries per genre — artist/keyword combos that work well with Spotify track search
+// 5 queries per genre — same count as English version to stay within rate limits
 const GENRE_QUERIES = {
-  'פופ ישראלי':        ['Noa Kirel','Omer Adam pop','Shiri Maimon','Static Ben El','Ninet Tayeb','Lior Narkis','Bar Zohar','Moshe Peretz pop'],
-  'רוק ישראלי':        ['Arik Einstein','Shalom Hanoch','Kaveret','Aviv Geffen','HaDag Nachash','Ehud Banai','Mashina band','Ethnix rock'],
-  'מזרחית':            ['Eyal Golan','Zohar Argov','Sarit Hadad','Amir Benayoun','Zehava Ben','Dudu Aharon','Daklon','Margalit Zanani'],
-  'מסיבה':             ['Static Ben El Thug','Omer Adam dance','Israeli dance hits','Noa Kirel dance','Harel Moyal','Tikvah Shesh','Subliminal Israeli'],
-  'להיטי כל הזמנים':  ['Naomi Shemer','Yehoram Gaon','Shlomo Artzi','Gali Atari','Matti Caspi','Yaffa Yarkoni','Shoshana Damari','Nurit Galron'],
-  'פופ שנות ה-90':     ['Rita Israeli','Boaz Sharabi','Rami Kleinstein','Yehuda Poliker','Gidi Gov','Shlomo Artzi 1990','Ehud Banai 1990','Avraham Tal'],
-  'ישראלי חדש':        ['Natan Goshen','Hanan Ben Ari','Ishay Ribo','Noga Erez','Eden Alene','Roy Kafri','Kobi Peretz new','Shefita'],
-  'ילדים ונוסטלגיה':   ['Israeli children songs','Gevatron','Lehakat Tzvaiot','Ilanit','Yardena Arazi','Naomi Shemer children','Ofra Haza early','Purim Israel'],
+  'פופ ישראלי':       ['Israeli pop music','Noa Kirel','Omer Adam','Static Ben El','Shiri Maimon'],
+  'רוק ישראלי':       ['Israeli rock','Arik Einstein','Aviv Geffen','Kaveret','HaDag Nachash'],
+  'מזרחית':           ['Israeli mizrahi','Eyal Golan','Zohar Argov','Sarit Hadad','Zehava Ben'],
+  'מסיבה':            ['Israeli dance hits','Static Ben El','Omer Adam dance','Noa Kirel','Harel Moyal'],
+  'להיטי כל הזמנים': ['Israeli classics','Naomi Shemer','Shlomo Artzi','Yehoram Gaon','Gali Atari'],
+  'פופ שנות ה-90':    ['Israeli 90s pop','Rita Israeli','Boaz Sharabi','Yehuda Poliker','Rami Kleinstein'],
+  'ישראלי חדש':       ['Israeli new music','Natan Goshen','Hanan Ben Ari','Ishay Ribo','Noga Erez'],
+  'ילדים ונוסטלגיה':  ['Israeli children songs','Naomi Shemer','Gevatron','Ilanit','Ofra Haza'],
 };
 const DECADES = ['1960s','1970s','1980s','1990s','2000s','2010s','2020s'];
 const MEDALS  = ['🥇','🥈','🥉'];
@@ -1184,16 +1184,6 @@ async function fetchSongs() {
     }
   }
   await Promise.all(promises);
-
-  // Fallback: if pool too small, search without year filter
-  if (allTracks.length < 20) {
-    const fallback = [];
-    for (const genre of selectedGenres) {
-      const queries = GENRE_QUERIES[genre] || [genre];
-      queries.slice(0, 3).forEach(q => fallback.push(searchTracks(q, 0, allTracks, true, 20)));
-    }
-    await Promise.all(fallback);
-  }
 
   const fresh = allTracks.filter(t => !playedIds.has(t.id));
   fresh.sort((a, b) => (b.popularity + Math.random() * 15) - (a.popularity + Math.random() * 15));
