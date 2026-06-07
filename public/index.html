@@ -661,6 +661,8 @@ const SCOPES = 'user-read-email user-read-private user-modify-playback-state use
 
 const GENRES = ['פופ ישראלי','רוק ישראלי','מזרחית','מסיבה','להיטי כל הזמנים','פופ שנות ה-90','ישראלי חדש','ילדים ונוסטלגיה'];
 
+// Playlist search queries per genre — Spotify will return real curated playlists
+// 5 queries per genre — same count as English version to stay within rate limits
 const GENRE_QUERIES = {
   'פופ ישראלי':       ['Israeli pop music','Noa Kirel','Omer Adam','Static Ben El','Shiri Maimon'],
   'רוק ישראלי':       ['Israeli rock','Arik Einstein','Aviv Geffen','Kaveret','HaDag Nachash'],
@@ -1166,21 +1168,11 @@ async function hostStartGame() {
   socket.emit('songs_ready', { songs: songsForServer });
 }
 
-// Patterns that indicate classical/non-Israeli tracks sneaking into results
-const CLASSICAL_FILTER = /\b(HWV|BWV|Op\.|KV|Act \d|Scene \d|No\.\s*\d|Symphony|Concerto|Sonata|Quartet|Opus|Oratorio|Cantata|Overture|Fugue|Prelude|Serenade|Handel|Bach|Mozart|Beethoven|Brahms|Vivaldi|Schubert|Chopin|Liszt|Haydn|Telemann|Purcell|Corelli)\b/i;
-
-function isValidIsraeliTrack(t) {
-  const title = t.name || '';
-  const artist = t.artists?.map(a => a.name).join(', ') || '';
-  if (CLASSICAL_FILTER.test(title) || CLASSICAL_FILTER.test(artist)) return false;
-  if ((t.popularity || 0) < 5) return false;
-  return true;
-}
-
 async function fetchSongs() {
   console.log('🎵 fetchSongs — Genres:', selectedGenres, 'Decades:', selectedDecades);
   const allTracks = [];
   const promises = [];
+
   for (const decade of selectedDecades) {
     const year = parseInt(decade);
     for (const genre of selectedGenres) {
@@ -1192,12 +1184,14 @@ async function fetchSongs() {
     }
   }
   await Promise.all(promises);
+
   const fresh = allTracks.filter(t => !playedIds.has(t.id));
   fresh.sort((a, b) => (b.popularity + Math.random() * 15) - (a.popularity + Math.random() * 15));
   const top = fresh.slice(0, 120);
   console.log(`🎵 Final pool: ${top.length} tracks`);
+
   if (top.length < tileCount) {
-    showErr('lobbyErr', `❌ נמצאו רק ${top.length} שירים — נדרשים ${tileCount}. נסה להוסיף ז'אנרים או עשורים.`);
+    showErr('lobbyErr', `❌ נמצאו רק ${top.length} שירים — נדרשים ${tileCount}. נסה להוסיף ז\'אנרים או עשורים.`);
     return [];
   }
   return shuffleArr(top);
@@ -1213,7 +1207,7 @@ async function searchTracks(q, year, allTracks, ignoreDecade, limit = 10) {
     const before = allTracks.length;
     (data.tracks?.items || []).forEach(t => {
       const ry = parseInt((t.album?.release_date || '0000').slice(0, 4));
-      if ((ignoreDecade || (ry >= year && ry <= year + 9)) && !allTracks.find(x => x.id === t.id) && isValidIsraeliTrack(t)) {
+      if ((ignoreDecade || (ry >= year && ry <= year + 9)) && !allTracks.find(x => x.id === t.id)) {
         allTracks.push({ title: t.name, artist: t.artists.map(a => a.name).join(', '), uri: t.uri, id: t.id, popularity: t.popularity || 0, albumArt: t.album?.images?.[0]?.url || '', releaseYear: ry, durationMs: t.duration_ms || 180000, lang: 'he' });
       }
     });
