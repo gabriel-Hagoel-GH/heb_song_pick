@@ -1259,7 +1259,7 @@ async function fetchSongs() {
 // Search Spotify for an artist's top tracks (no year filter)
 async function searchByArtist(artistName, allTracks, seenIds, limit = 20) {
   try {
-    const searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent('artist:' + artistName)}&type=track&limit=${limit}&market=IL`;
+    const searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(artistName)}&type=track&limit=${limit}`;
     const r = await spotifyFetchWithRetry(searchUrl);
     if (!r) { console.warn(`[search] null response for "${artistName}"`); return; }
     if (!r.ok) { console.warn(`[search] HTTP ${r.status} for "${artistName}"`); return; }
