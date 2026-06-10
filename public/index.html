@@ -1168,28 +1168,71 @@ async function hostStartGame() {
   });
 }
 
+// Run async tasks with at most `limit` in flight at once
+async function pLimit(tasks, limit = 3) {
+  const results = [];
+  let i = 0;
+  async function worker() {
+    while (i < tasks.length) {
+      const idx = i++;
+      results[idx] = await tasks[idx]();
+    }
+  }
+  const workers = Array.from({ length: Math.min(limit, tasks.length) }, worker);
+  await Promise.all(workers);
+  return results;
+}
+
+// Fetch one URL with up to 2 retries on 429, backing off 1s then 2s
+async function spotifyFetchWithRetry(url, retries = 2) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const r = await spotifyFetch(url);
+    if (r && r.status === 429) {
+      if (attempt < retries) {
+        const wait = (attempt + 1) * 1000;
+        await new Promise(res => setTimeout(res, wait));
+        continue;
+      }
+      return null; // gave up
+    }
+    return r;
+  }
+}
+
 async function fetchSongs() {
   const allTracks = [];
-  const promises  = [];
 
+  // Build list of unique queries — one per (genre, decade, query-string) combo
+  // Use only the full-decade range to halve the request count
+  const tasks = [];
   for (const decade of selectedDecades) {
     const year = parseInt(decade);
     for (const genre of selectedGenres) {
       const queries = GENRE_QUERIES[genre] || [genre];
       queries.forEach(q => {
-        promises.push(searchTracks(`${q} year:${year}-${year+9}`, year, allTracks));
-        promises.push(searchTracks(`${q} year:${year}-${year+4}`, year, allTracks));
+        tasks.push(() => searchTracks(`${q} year:${year}-${year+9}`, year, allTracks));
       });
     }
   }
-  await Promise.all(promises);
+
+  // Update loading label as we go
+  let done = 0;
+  const total = tasks.length;
+  const wrappedTasks = tasks.map(fn => async () => {
+    await fn();
+    done++;
+    const btn = document.getElementById('startGameBtn');
+    if (btn) btn.textContent = `טוען שירים… ${done}/${total}`;
+  });
+
+  // Max 3 concurrent requests — stays well under Spotify's rate limit
+  await pLimit(wrappedTasks, 3);
 
   const fresh = allTracks
     .filter(t => !playedIds.has(t.id))
     .sort((a, b) => (b.popularity + Math.random() * 15) - (a.popularity + Math.random() * 15))
     .slice(0, 120);
 
-  // FIX: single error location — no duplicate message in caller
   if (fresh.length < tileCount) {
     showErr('lobbyErr',
       `❌ נמצאו רק ${fresh.length} שירים — נדרשים לפחות ${tileCount}. נסה להוסיף ז'אנרים או עשורים.`);
@@ -1209,7 +1252,7 @@ function isValidTrack(t) {
 async function searchTracks(q, year, allTracks, limit = 10) {
   try {
     const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=${limit}`;
-    const r   = await spotifyFetch(url);
+    const r   = await spotifyFetchWithRetry(url);
     if (!r || !r.ok) return;
     const data = await r.json();
     if (data.error) return;
