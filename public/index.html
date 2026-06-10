@@ -836,6 +836,7 @@ function connectSocket() {
     if (isHost) {
       setPill('hostStatusPill', '🎵 מנגן — שחקנים בוחרים!', 'green');
       setEl('hostPlayBtn', el => { el.disabled = true; el.textContent = 'מנגן…'; });
+      enableHostTiles();
     } else {
       setPill('playerStatusPill', '🎵 הקשב ובחר!', 'green');
       enableTiles();
@@ -853,6 +854,7 @@ function connectSocket() {
       spotifyPause();
       document.getElementById('hostWave').classList.add('off');
       setPill('hostStatusPill', 'כולם בחרו — מחשב…', 'amber');
+      disableHostTiles();
     } else {
       disableTiles();
       document.getElementById('playerWave').classList.add('off');
@@ -867,6 +869,7 @@ function connectSocket() {
       document.getElementById('hostPlayBtn').style.display  = 'none';
       document.getElementById('hostWave').classList.add('off');
       setPill('hostStatusPill', 'אף אחד לא ניחש!', 'amber');
+      disableHostTiles();
     } else {
       disableTiles();
       document.getElementById('playerWave').classList.add('off');
@@ -887,7 +890,9 @@ function connectSocket() {
         el.textContent    = `▶ נגן שוב (+${duration}ש)`;
       });
       setPill('hostStatusPill', `+${duration}ש — לחץ נגן להמשך!`, 'amber');
+      // Reset selection; tiles will be re-enabled when song_playing fires
       document.querySelectorAll('#hostTileGrid .tile').forEach(t => t.classList.remove('selected'));
+      myPickIdx = null;
     } else {
       enableTiles();
       resetTileSelection();
@@ -1282,7 +1287,8 @@ function setPlayPosition(pos) {
   document.getElementById('posMidBtn').classList.toggle('active-pos', pos === 'middle');
 }
 
-// FIX: host tile grid is VIEW-ONLY — no onclick, no submit_pick
+// Host tiles are interactive for visual selection but do NOT emit submit_pick.
+// The server must ignore any picks from the host socket to avoid affecting scoring.
 function renderHostTiles(options) {
   const grid = document.getElementById('hostTileGrid');
   if (!grid) return;
@@ -1290,11 +1296,27 @@ function renderHostTiles(options) {
   grid.innerHTML = '';
   options.forEach((opt, i) => {
     const tile = document.createElement('div');
-    tile.className    = 'tile disabled'; // always disabled — host cannot submit picks
-    tile.dataset.idx  = i;
-    tile.innerHTML    = `<div class="tile-title">${esc(opt.title)}</div><div class="tile-artist">${esc(opt.artist)}</div>`;
+    tile.className   = 'tile disabled'; // starts disabled; enabled when song plays
+    tile.dataset.idx = i;
+    tile.innerHTML   = `<div class="tile-title">${esc(opt.title)}</div><div class="tile-artist">${esc(opt.artist)}</div>`;
+    tile.onclick     = () => onHostTilePick(i);
     grid.appendChild(tile);
   });
+}
+
+function enableHostTiles() {
+  document.querySelectorAll('#hostTileGrid .tile').forEach(t => t.classList.remove('disabled'));
+}
+function disableHostTiles() {
+  document.querySelectorAll('#hostTileGrid .tile').forEach(t => t.classList.add('disabled'));
+}
+
+// Host picks count like any player — emit submit_pick to server
+function onHostTilePick(idx) {
+  if (myPickIdx === idx) return;
+  myPickIdx = idx;
+  document.querySelectorAll('#hostTileGrid .tile').forEach((t, i) => t.classList.toggle('selected', i === idx));
+  socket.emit('submit_pick', { optionIdx: idx });
 }
 
 function updateHostPlayerStatus(players) {
