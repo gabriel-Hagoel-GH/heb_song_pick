@@ -1233,12 +1233,19 @@ async function fetchSongs() {
   const decadeYears = selectedDecades.map(d => parseInt(d));
   const inDecade = t => decadeYears.some(y => t.releaseYear >= y && t.releaseYear <= y + 9);
 
+  console.log(`[fetchSongs] Total before decade filter: ${allTracks.length}`);
+  console.log(`[fetchSongs] Selected decades:`, selectedDecades);
+  // Show year distribution to debug decade mismatches
+  const yearDist = {};
+  allTracks.forEach(t => { const decade = Math.floor(t.releaseYear/10)*10; yearDist[decade] = (yearDist[decade]||0)+1; });
+  console.log('[fetchSongs] Year distribution:', yearDist);
+
   const pool = allTracks
     .filter(t => !playedIds.has(t.id) && inDecade(t))
     .sort((a, b) => (b.popularity + Math.random() * 20) - (a.popularity + Math.random() * 20))
     .slice(0, 150);
 
-  console.log(`🎵 Pool after decade filter: ${pool.length} tracks`);
+  console.log(`[fetchSongs] Pool after decade filter: ${pool.length} tracks`);
 
   if (pool.length < tileCount) {
     // Helpful message telling user which decade had nothing
@@ -1252,13 +1259,16 @@ async function fetchSongs() {
 // Search Spotify for an artist's top tracks (no year filter)
 async function searchByArtist(artistName, allTracks, seenIds, limit = 20) {
   try {
-    // First find the artist ID for precision
     const searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent('artist:' + artistName)}&type=track&limit=${limit}&market=IL`;
     const r = await spotifyFetchWithRetry(searchUrl);
-    if (!r || !r.ok) return;
+    if (!r) { console.warn(`[search] null response for "${artistName}"`); return; }
+    if (!r.ok) { console.warn(`[search] HTTP ${r.status} for "${artistName}"`); return; }
     const data = await r.json();
-    if (data.error) return;
-    (data.tracks?.items || []).forEach(t => {
+    if (data.error) { console.warn(`[search] Spotify error for "${artistName}":`, data.error); return; }
+    const items = data.tracks?.items || [];
+    console.log(`[search] "${artistName}" → ${items.length} raw tracks`);
+    let added = 0;
+    items.forEach(t => {
       if (seenIds.has(t.id)) return;
       if (!isValidTrack(t)) return;
       const ry = parseInt((t.album?.release_date || '0000').slice(0, 4));
@@ -1269,8 +1279,10 @@ async function searchByArtist(artistName, allTracks, seenIds, limit = 20) {
         albumArt: t.album?.images?.[0]?.url || '',
         releaseYear: ry, durationMs: t.duration_ms || 180000
       });
+      added++;
     });
-  } catch { /* silent */ }
+    console.log(`[search] "${artistName}" → ${added} added (total pool: ${allTracks.length})`);
+  } catch(e) { console.error(`[search] exception for "${artistName}":`, e); }
 }
 
 function isValidTrack(t) {
