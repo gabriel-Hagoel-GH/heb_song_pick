@@ -1262,7 +1262,13 @@ async function searchByArtist(artistName, allTracks, seenIds, limit = 20) {
     const searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(artistName)}&type=track&limit=${limit}`;
     const r = await spotifyFetchWithRetry(searchUrl);
     if (!r) { console.warn(`[search] null response for "${artistName}"`); return; }
-    if (!r.ok) { console.warn(`[search] HTTP ${r.status} for "${artistName}"`); return; }
+    if (!r.ok) {
+      let body = '';
+      try { body = await r.text(); } catch {}
+      console.warn(`[search] HTTP ${r.status} for "${artistName}" — body:`, body);
+      console.warn(`[search] token used:`, (sessionStorage.getItem('at') || '').slice(0,30) + '…');
+      return;
+    }
     const data = await r.json();
     if (data.error) { console.warn(`[search] Spotify error for "${artistName}":`, data.error); return; }
     const items = data.tracks?.items || [];
