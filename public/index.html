@@ -620,14 +620,14 @@ const SCOPES = 'user-read-email user-read-private user-modify-playback-state use
 const GENRES = ['פופ ישראלי','רוק ישראלי','מזרחית','מסיבה','להיטי כל הזמנים','פופ שנות ה-90','ישראלי חדש','ילדים ונוסטלגיה'];
 
 const GENRE_QUERIES = {
-  'פופ ישראלי':       ['Israeli pop music','Noa Kirel','Omer Adam','Static Ben El','Shiri Maimon'],
-  'רוק ישראלי':       ['Israeli rock','Arik Einstein','Aviv Geffen','Kaveret','HaDag Nachash'],
-  'מזרחית':           ['Israeli mizrahi','Eyal Golan','Zohar Argov','Sarit Hadad','Zehava Ben'],
-  'מסיבה':            ['Israeli dance hits','Static Ben El','Omer Adam dance','Noa Kirel','Harel Moyal'],
-  'להיטי כל הזמנים': ['Israeli classics','Naomi Shemer','Shlomo Artzi','Yehoram Gaon','Gali Atari'],
-  'פופ שנות ה-90':    ['Israeli 90s pop','Rita Israeli','Boaz Sharabi','Yehuda Poliker','Rami Kleinstein'],
-  'ישראלי חדש':       ['Israeli new music','Natan Goshen','Hanan Ben Ari','Ishay Ribo','Noga Erez'],
-  'ילדים ונוסטלגיה':  ['Israeli children songs','Naomi Shemer','Gevatron','Ilanit','Ofra Haza'],
+  'פופ ישראלי':       ['Noa Kirel','Omer Adam','Static Ben El','Shiri Maimon','Sarit Hadad','Harel Skaat','Keren Peles','Moshe Peretz','Eden Ben Zaken','Ivri Lider'],
+  'רוק ישראלי':       ['Arik Einstein','Aviv Geffen','Kaveret','HaDag Nachash','Shlomo Artzi','Mashina','Rockfour','Berry Sakharof','Rami Kleinstein','Ehud Banai'],
+  'מזרחית':           ['Eyal Golan','Zohar Argov','Sarit Hadad','Zehava Ben','Moshe Peretz','Avi Bitter','Margalit Tzanani','Haim Moshe','Kobi Peretz','Dudu Aharon'],
+  'מסיבה':            ['Static Ben El','Omer Adam','Noa Kirel','Harel Moyal','Eden Ben Zaken','Natan Goshen','Nasreen Qadri','Subliminal','Ivri Lider','Moshe Peretz'],
+  'להיטי כל הזמנים': ['Naomi Shemer','Shlomo Artzi','Yehoram Gaon','Gali Atari','Ofra Haza','Arik Einstein','Chava Alberstein','Shoshana Damari','Yaffa Yarkoni','Danny Sanderson'],
+  'פופ שנות ה-90':    ['Rami Kleinstein','Rita Israeli','Boaz Sharabi','Yehuda Poliker','Shiri Maimon','Kobi Oz','Ethnix','Dina','Miri Aloni','Tzvika Pick'],
+  'ישראלי חדש':       ['Natan Goshen','Hanan Ben Ari','Ishay Ribo','Noga Erez','Eden Ben Zaken','Omer Adam','Static Ben El','Noa Kirel','Alon Oleartchik','Ran Danker'],
+  'ילדים ונוסטלגיה':  ['Naomi Shemer','Gevatron','Ilanit','Ofra Haza','Chava Alberstein','Yehoram Gaon','Nurit Hirsh','Yaffa Yarkoni','Yoram Gaon','Nili Hadad'],
 };
 const DECADES = ['1960s','1970s','1980s','1990s','2000s','2010s','2020s'];
 const MEDALS  = ['🥇','🥈','🥉'];
@@ -1168,7 +1168,8 @@ async function hostStartGame() {
   });
 }
 
-// Run async tasks with at most `limit` in flight at once
+// ── Concurrency limiter ────────────────────────────────────
+// Runs async tasks with at most `limit` in flight simultaneously
 async function pLimit(tasks, limit = 3) {
   const results = [];
   let i = 0;
@@ -1178,67 +1179,98 @@ async function pLimit(tasks, limit = 3) {
       results[idx] = await tasks[idx]();
     }
   }
-  const workers = Array.from({ length: Math.min(limit, tasks.length) }, worker);
-  await Promise.all(workers);
+  await Promise.all(Array.from({ length: Math.min(limit, tasks.length) }, worker));
   return results;
 }
 
-// Fetch one URL with up to 2 retries on 429, backing off 1s then 2s
-async function spotifyFetchWithRetry(url, retries = 2) {
+// spotifyFetch with automatic retry on 429 rate-limit responses
+async function spotifyFetchWithRetry(url, retries = 3) {
   for (let attempt = 0; attempt <= retries; attempt++) {
     const r = await spotifyFetch(url);
-    if (r && r.status === 429) {
-      if (attempt < retries) {
-        const wait = (attempt + 1) * 1000;
-        await new Promise(res => setTimeout(res, wait));
-        continue;
-      }
-      return null; // gave up
+    if (!r) return null;
+    if (r.status !== 429) return r;
+    if (attempt < retries) {
+      // Respect Retry-After header if present, else exponential back-off
+      const retryAfter = parseInt(r.headers.get('Retry-After') || '0');
+      const wait = retryAfter > 0 ? retryAfter * 1000 : (attempt + 1) * 1500;
+      await new Promise(res => setTimeout(res, wait));
     }
-    return r;
   }
+  return null; // exhausted retries
 }
 
+// ── Song fetching ───────────────────────────────────────────
+// Strategy: search by artist name only (no year filter) — Spotify's year: filter
+// is unreliable for Israeli music. We filter by release year client-side instead.
 async function fetchSongs() {
   const allTracks = [];
+  const seenIds   = new Set();
 
-  // Build list of unique queries — one per (genre, decade, query-string) combo
-  // Use only the full-decade range to halve the request count
+  // Collect all (artist, yearRange) tasks
   const tasks = [];
-  for (const decade of selectedDecades) {
-    const year = parseInt(decade);
-    for (const genre of selectedGenres) {
-      const queries = GENRE_QUERIES[genre] || [genre];
-      queries.forEach(q => {
-        tasks.push(() => searchTracks(`${q} year:${year}-${year+9}`, year, allTracks));
-      });
+  for (const genre of selectedGenres) {
+    const artists = GENRE_QUERIES[genre] || [genre];
+    for (const artist of artists) {
+      // Primary: search by artist name — gets their top tracks
+      tasks.push(() => searchByArtist(artist, allTracks, seenIds));
     }
   }
 
-  // Update loading label as we go
+  // Progress counter
   let done = 0;
   const total = tasks.length;
-  const wrappedTasks = tasks.map(fn => async () => {
+  const wrapped = tasks.map(fn => async () => {
     await fn();
     done++;
     const btn = document.getElementById('startGameBtn');
     if (btn) btn.textContent = `טוען שירים… ${done}/${total}`;
   });
 
-  // Max 3 concurrent requests — stays well under Spotify's rate limit
-  await pLimit(wrappedTasks, 3);
+  // 4 concurrent — fast enough, safe enough
+  await pLimit(wrapped, 4);
 
-  const fresh = allTracks
-    .filter(t => !playedIds.has(t.id))
-    .sort((a, b) => (b.popularity + Math.random() * 15) - (a.popularity + Math.random() * 15))
-    .slice(0, 120);
+  // Filter by selected decades client-side
+  const decadeYears = selectedDecades.map(d => parseInt(d));
+  const inDecade = t => decadeYears.some(y => t.releaseYear >= y && t.releaseYear <= y + 9);
 
-  if (fresh.length < tileCount) {
+  const pool = allTracks
+    .filter(t => !playedIds.has(t.id) && inDecade(t))
+    .sort((a, b) => (b.popularity + Math.random() * 20) - (a.popularity + Math.random() * 20))
+    .slice(0, 150);
+
+  console.log(`🎵 Pool after decade filter: ${pool.length} tracks`);
+
+  if (pool.length < tileCount) {
+    // Helpful message telling user which decade had nothing
     showErr('lobbyErr',
-      `❌ נמצאו רק ${fresh.length} שירים — נדרשים לפחות ${tileCount}. נסה להוסיף ז'אנרים או עשורים.`);
+      `❌ נמצאו רק ${pool.length} שירים לעשורים שבחרת — נסה להוסיף עשורים נוספים או ז'אנרים אחרים.`);
     return [];
   }
-  return shuffleArr(fresh);
+  return shuffleArr(pool);
+}
+
+// Search Spotify for an artist's top tracks (no year filter)
+async function searchByArtist(artistName, allTracks, seenIds, limit = 20) {
+  try {
+    // First find the artist ID for precision
+    const searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent('artist:' + artistName)}&type=track&limit=${limit}&market=IL`;
+    const r = await spotifyFetchWithRetry(searchUrl);
+    if (!r || !r.ok) return;
+    const data = await r.json();
+    if (data.error) return;
+    (data.tracks?.items || []).forEach(t => {
+      if (seenIds.has(t.id)) return;
+      if (!isValidTrack(t)) return;
+      const ry = parseInt((t.album?.release_date || '0000').slice(0, 4));
+      seenIds.add(t.id);
+      allTracks.push({
+        title: t.name, artist: t.artists.map(a => a.name).join(', '),
+        uri: t.uri, id: t.id, popularity: t.popularity || 0,
+        albumArt: t.album?.images?.[0]?.url || '',
+        releaseYear: ry, durationMs: t.duration_ms || 180000
+      });
+    });
+  } catch { /* silent */ }
 }
 
 function isValidTrack(t) {
@@ -1247,27 +1279,6 @@ function isValidTrack(t) {
   if (CLASSICAL_FILTER.test(title) || CLASSICAL_FILTER.test(artist)) return false;
   if ((t.popularity || 0) < 5) return false;
   return true;
-}
-
-async function searchTracks(q, year, allTracks, limit = 10) {
-  try {
-    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=${limit}`;
-    const r   = await spotifyFetchWithRetry(url);
-    if (!r || !r.ok) return;
-    const data = await r.json();
-    if (data.error) return;
-    (data.tracks?.items || []).forEach(t => {
-      const ry = parseInt((t.album?.release_date || '0000').slice(0, 4));
-      if (ry >= year && ry <= year + 9 && !allTracks.find(x => x.id === t.id) && isValidTrack(t)) {
-        allTracks.push({
-          title: t.name, artist: t.artists.map(a => a.name).join(', '),
-          uri: t.uri, id: t.id, popularity: t.popularity || 0,
-          albumArt: t.album?.images?.[0]?.url || '',
-          releaseYear: ry, durationMs: t.duration_ms || 180000
-        });
-      }
-    });
-  } catch { /* silent */ }
 }
 
 // ── Host Game ──────────────────────────────────────────────
