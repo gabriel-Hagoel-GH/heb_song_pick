@@ -659,19 +659,16 @@ const CLIENT_ID   = '343ddfcdf3ef445697e55ff537a2c18a';
 const REDIRECT_URI = window.location.origin + '/';
 const SCOPES = 'user-read-email user-read-private user-modify-playback-state user-read-playback-state';
 
-const GENRES = ['פופ ישראלי','רוק ישראלי','מזרחית','מסיבה','להיטי כל הזמנים','פופ שנות ה-90','ישראלי חדש','ילדים ונוסטלגיה'];
+const GENRES = ['פופ ישראלי','רוק ישראלי','מזרחי','פסטיגלים','שירים מסרטים'];
 
-// Playlist search queries per genre — Spotify will return real curated playlists
-// 5 queries per genre — same count as English version to stay within rate limits
+// Hebrew search queries per genre. The search runs against track names/artists/albums,
+// so phrasing these the way Israeli playlists/tracks are titled surfaces relevant songs.
 const GENRE_QUERIES = {
-  'פופ ישראלי':       ['Israeli pop music','Noa Kirel','Omer Adam','Static Ben El','Shiri Maimon'],
-  'רוק ישראלי':       ['Israeli rock','Arik Einstein','Aviv Geffen','Kaveret','HaDag Nachash'],
-  'מזרחית':           ['Israeli mizrahi','Eyal Golan','Zohar Argov','Sarit Hadad','Zehava Ben'],
-  'מסיבה':            ['Israeli dance hits','Static Ben El','Omer Adam dance','Noa Kirel','Harel Moyal'],
-  'להיטי כל הזמנים': ['Israeli classics','Naomi Shemer','Shlomo Artzi','Yehoram Gaon','Gali Atari'],
-  'פופ שנות ה-90':    ['Israeli 90s pop','Rita Israeli','Boaz Sharabi','Yehuda Poliker','Rami Kleinstein'],
-  'ישראלי חדש':       ['Israeli new music','Natan Goshen','Hanan Ben Ari','Ishay Ribo','Noga Erez'],
-  'ילדים ונוסטלגיה':  ['Israeli children songs','Naomi Shemer','Gevatron','Ilanit','Ofra Haza'],
+  'פופ ישראלי':   ['פופ ישראלי','פופ ישראלי: הלהיטים','פופ ישראלי ישן','פופ ישראלי חדש','הלהיטים הגדולים של ישראל'],
+  'רוק ישראלי':   ['קלאסיקות רוק ישראלי','רוק ישראלי מקפיץ','רוק ישראלי ישן וטוב','מסיבת רוק ישראלית','רוק ישראלי מאז ועד היום'],
+  'מזרחי':        ['ים תיכוני: הלהיטים','מזרחית ישנה','מזרחית ישנה וטובה','מזרחית ליום שישי','מסיבה מזרחית'],
+  'פסטיגלים':     ['פסטיגלים מכל הזמנים','שירי פסטיגל אהובים ביותר','שירי פסטיגלים מכל הזמנים','פלייליסט פסטיגלים','שירי פסטיגל - מכל הזמנים'],
+  'שירים מסרטים': ['שירים מסרטים ישראלים','פסקול ישראלי - שירים מסרטים ישראלים','רק השירים הישראלים הכי יפים אי פעם'],
 };
 const DECADES = ['1960s','1970s','1980s','1990s','2000s','2010s','2020s'];
 const MEDALS  = ['🥇','🥈','🥉'];
@@ -691,7 +688,7 @@ let currentSongIdx = 0;
 let currentOptions = []; // 12 tile options for current round
 let myPickIdx = null;    // index of currently selected tile
 let playPosition = 'start';
-let tileCount = 12;
+let tileCount = 6;
 let roundDuration = 20;
 let currentTheme = 'default';
 
@@ -1036,7 +1033,7 @@ function buildLobby() {
   document.querySelectorAll('.pick.on').forEach(b => b.classList.remove('on'));
   document.querySelectorAll('.round-btn.active').forEach(b => b.classList.remove('active'));
   selectedGenres = []; selectedDecades = []; israeliMode = false;
-  roundCount = 5; tileCount = 12; roundDuration = 20;
+  roundCount = 5; tileCount = 6; roundDuration = 20;
 
   const gg = document.getElementById('genreGrid'); gg.innerHTML = '';
   GENRES.forEach(g => {
@@ -1076,7 +1073,7 @@ function buildLobby() {
   const tc = document.getElementById('tileCountBtns'); tc.innerHTML = '';
   [4, 6, 8, 12].forEach(n => {
     const b = document.createElement('button');
-    b.className = 'btn sec round-btn tile-count-btn' + (n===12?' active':'');
+    b.className = 'btn sec round-btn tile-count-btn' + (n===6?' active':'');
     b.textContent = n + ' ריבועים';
     b.onclick = () => {
       document.querySelectorAll('.tile-count-btn').forEach(x=>x.classList.remove('active'));
@@ -1199,11 +1196,16 @@ async function fetchSongs() {
 
 const CLASSICAL_FILTER = /\b(HWV|BWV|Op\.|KV|Act \d|Scene \d|No\.\s*\d|Symphony|Concerto|Sonata|Quartet|Opus|Oratorio|Cantata|Overture|Fugue|Prelude|Serenade|Handel|Bach|Mozart|Beethoven|Brahms|Vivaldi|Schubert|Chopin|Liszt|Haydn|Telemann|Purcell|Corelli)\b/i;
 
+// Matches any Hebrew letter (incl. final forms). Used to keep only Hebrew-titled songs.
+const HEBREW_RE = /[\u05D0-\u05EA]/;
+
 function isValidTrack(t) {
   const title = t.name || '';
   const artist = t.artists?.map(a => a.name).join(', ') || '';
   if (!t.id || !title) return false;
   if (CLASSICAL_FILTER.test(title) || CLASSICAL_FILTER.test(artist)) return false;
+  // Keep only songs whose TITLE is written in Hebrew (contains at least one Hebrew letter).
+  if (!HEBREW_RE.test(title)) return false;
   // NOTE: Spotify removed the `popularity` field from track objects (Feb 2026 Web API
   // changes), so it can no longer be used to filter. The old `popularity < 5` check
   // rejected every track once the field disappeared, which is why no songs were found.
