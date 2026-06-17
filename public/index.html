@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="שיר בריבוע"/>
 <link rel="manifest" href="manifest.json"/>
 <title>שיר בריבוע</title>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500&family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <script src="/socket.io/socket.io.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -17,12 +17,12 @@
   --accent:#7c3aed;--accent2:#a855f7;--accent3:#c084fc;
   --green:#22c55e;--red:#ef4444;--gold:#f59e0b;
   --text:#f0f0ff;--muted:#6b6b8a;--border:#2a2a3a;
-  --rad:14px;--rad-sm:8px;
-  --font:'Heebo',sans-serif;
+  --rad:14px;--rad-sm:8px;--rad-tile:12px;
+  --title-font:'Heebo',sans-serif;--body-font:'Heebo',sans-serif;
   --shadow:0 20px 60px rgba(0,0,0,.8);
 }
 
-/* ── THEME SKINS ── */
+/* ── THEME SKINS ──────────────────────────────────────────── */
 [data-theme="candy"]{
   --bg:#FFF8F0;--bg2:#FFFFFF;--bg3:#F3F4F6;
   --accent:#7C3AED;--accent2:#8B5CF6;--accent3:#6D28D9;
@@ -77,9 +77,8 @@
   --tile-sel-bg:#0F1117;--tile-sel-border:#F59E0B;--tile-sel-shadow:0 0 8px rgba(245,158,11,.4),inset 0 1px 0 rgba(245,158,11,.1);
   --tile-cor-bg:#0F1117;--tile-cor-border:#4ADE80;--tile-shadow:inset 0 1px 0 rgba(255,255,255,.04);
 }
-
 html,body{height:100%;overflow:hidden}
-body{background:#000;display:flex;align-items:center;justify-content:center;font-family:var(--font);color:var(--text)}
+body{background:#000;display:flex;align-items:center;justify-content:center;font-family:var(--body-font);color:var(--text)}
 
 #app{
   background:var(--bg);width:100%;max-width:480px;height:100vh;max-height:860px;
@@ -88,43 +87,44 @@ body{background:#000;display:flex;align-items:center;justify-content:center;font
 }
 @media(min-width:500px){#app{border-radius:20px;height:95vh;box-shadow:var(--shadow)}}
 
-/* noise overlay */
+/* noise texture overlay */
 #app::before{
   content:'';position:absolute;inset:0;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
   opacity:.4;pointer-events:none;z-index:0;border-radius:inherit;
 }
 
-.screen{display:none;flex-direction:column;align-items:center;padding:.85rem;overflow-y:auto;flex:1;position:relative;z-index:1}
+.screen{display:none;flex-direction:column;align-items:center;padding:.85rem .85rem;overflow-y:auto;flex:1;position:relative;z-index:1}
 .screen.active{display:flex}
 
-/* Typography */
-h1{font-size:2.8rem;font-weight:800;letter-spacing:-1px;
+/* ── Typography ── */
+h1{font-family:var(--title-font);font-size:2.8rem;font-weight:800;letter-spacing:-1px;
    background:linear-gradient(135deg,var(--accent2),var(--accent3),#fff);
    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
-h2{font-size:1.7rem;font-weight:700;color:var(--text)}
+h2{font-family:var(--title-font);font-size:1.7rem;font-weight:700;color:var(--text)}
+h3{font-family:var(--title-font);font-size:1.2rem;color:var(--text)}
 .sub{color:var(--muted);font-size:.83rem;text-align:center;line-height:1.6;margin-bottom:.75rem}
-.ver{font-size:.6rem;color:#333;letter-spacing:.12em;margin-bottom:.4rem}
+.ver{font-size:.6rem;color:#333;letter-spacing:.12em;margin-bottom:.4rem;font-family:var(--title-font)}
 
-/* Cards */
+/* ── Cards ── */
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rad);padding:1rem;margin-bottom:.65rem;width:100%}
 
-/* Labels */
+/* ── Labels ── */
 .lbl{font-size:.65rem;color:var(--muted);display:block;margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.1em;font-weight:600}
 
-/* Inputs */
+/* ── Inputs ── */
 input[type=text]{
   width:100%;background:var(--bg3);border:1.5px solid var(--border);
   color:var(--text);padding:.6rem .85rem;border-radius:var(--rad-sm);
-  font-family:var(--font);font-size:1rem;outline:none;transition:border-color .15s
+  font-family:var(--body-font);font-size:1rem;outline:none;transition:border-color .15s
 }
 input:focus{border-color:var(--accent2)}
 input::placeholder{color:var(--muted)}
 
-/* Buttons */
+/* ── Buttons ── */
 .btn{
   background:var(--accent);color:#fff;border:none;padding:.7rem 1.4rem;
-  border-radius:999px;font-family:var(--font);font-size:.95rem;font-weight:600;
+  border-radius:999px;font-family:var(--title-font);font-size:.95rem;font-weight:600;
   letter-spacing:.03em;cursor:pointer;transition:all .15s;
   display:inline-flex;align-items:center;justify-content:center;gap:.4rem;width:100%
 }
@@ -137,21 +137,24 @@ input::placeholder{color:var(--muted)}
 .btn.red{background:var(--red)}
 .btn.sm{font-size:.78rem;padding:.5rem 1rem}
 
-/* Pick grid */
+/* ── Row ── */
+.row{display:flex;gap:.5rem;width:100%}
+
+/* ── Pick grid ── */
 .pgrid{display:grid;gap:.3rem;width:100%;margin-bottom:.5rem}
 .g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
 .pick{background:var(--bg3);border:1.5px solid var(--border);color:var(--muted);
   padding:.25rem .2rem;border-radius:6px;font-size:.67rem;cursor:pointer;text-align:center;
-  transition:all .15s;font-family:var(--font);line-height:1.2}
+  transition:all .15s;font-family:var(--body-font);line-height:1.2}
 .pick.on{background:rgba(124,58,237,.18);border-color:var(--accent2);color:var(--accent3)}
 
-/* Room code */
-.room-code{font-family:var(--font);font-size:3.5rem;font-weight:800;letter-spacing:10px;
+/* ── Room code ── */
+.room-code{font-family:var(--title-font);font-size:3.5rem;font-weight:800;letter-spacing:10px;
   background:linear-gradient(135deg,var(--accent2),var(--accent3));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
   text-align:center;line-height:1}
 
-/* Player list */
+/* ── Player list ── */
 .player-row{display:flex;align-items:center;justify-content:space-between;
   padding:.45rem .7rem;background:var(--bg3);border-radius:var(--rad-sm);margin-bottom:.25rem}
 .player-row .name{font-size:.88rem;display:flex;align-items:center;gap:.35rem}
@@ -159,33 +162,39 @@ input::placeholder{color:var(--muted)}
 .host-badge{font-size:.58rem;background:rgba(124,58,237,.25);color:var(--accent3);
   padding:.12rem .38rem;border-radius:4px;text-transform:uppercase;letter-spacing:.06em}
 
-/* Timer ring */
+/* ── Timer ring ── */
 .tring{position:relative;width:60px;height:60px;margin:.1rem auto}
 .tring svg{transform:rotate(-90deg)}
 .tr-bg{fill:none;stroke:var(--bg3);stroke-width:6}
-/* FIX: stroke-dashoffset starts at 0 (full ring shown) and counts down to 163 (empty) */
 .tr-fg{fill:none;stroke:var(--accent2);stroke-width:6;stroke-linecap:round;
   stroke-dasharray:163;stroke-dashoffset:0;transition:stroke-dashoffset .1s linear,stroke .3s}
 .tnum{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-family:var(--font);font-size:1.2rem;font-weight:700;color:var(--text)}
+  font-family:var(--title-font);font-size:1.2rem;font-weight:700;color:var(--text)}
 
-/* Wave */
+/* ── Wave ── */
 .wave{display:flex;align-items:center;gap:3px;height:28px;justify-content:center;margin:.2rem auto}
 .bar{width:4px;background:var(--accent2);border-radius:2px;min-height:3px;animation:wv .9s ease-in-out infinite}
 .bar:nth-child(1){height:9px;animation-delay:0s}.bar:nth-child(2){height:22px;animation-delay:.08s}
 .bar:nth-child(3){height:14px;animation-delay:.16s}.bar:nth-child(4){height:26px;animation-delay:.24s}
-.bar:nth-child(5){height:17px;animation-delay:.32s}
+.bar:nth-child(5){height:17px;animation-delay:.32s}.bar:nth-child(6){height:11px;animation-delay:.4s}
+.bar:nth-child(7){height:20px;animation-delay:.48s}
 @keyframes wv{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.18)}}
 .wave.off .bar{animation:none;height:3px;opacity:.25}
 
-/* Pill */
+/* ── Pill ── */
 .pill{display:inline-block;padding:.2rem .8rem;border-radius:999px;font-size:.7rem;font-weight:600;letter-spacing:.03em}
 .pill.purple{background:rgba(124,58,237,.2);color:var(--accent3);border:1px solid rgba(124,58,237,.3)}
 .pill.green{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.25)}
 .pill.amber{background:rgba(245,158,11,.12);color:var(--gold);border:1px solid rgba(245,158,11,.2)}
 
-/* Tile grid */
-.tile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem;width:100%;margin:.2rem 0}
+/* ── Topbar ── */
+.topbar{width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem}
+.song-info{font-size:.68rem;color:var(--muted)}
+
+/* ── TILE GRID ── */
+.tile-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem;width:100%;margin:.2rem 0;
+}
 .tile{
   background:var(--tile-bg,var(--bg2));border:1.5px solid var(--tile-border,var(--border));border-radius:10px;
   padding:.45rem .35rem;cursor:pointer;text-align:center;transition:all .15s;
@@ -211,45 +220,53 @@ input::placeholder{color:var(--muted)}
   background:var(--tile-cor-bg,rgba(34,197,94,.18));
   box-shadow:0 0 0 2px rgba(34,197,94,.3);animation:correctPop .4s ease-out;
 }
-.tile.wrong{border-color:var(--red);background:rgba(239,68,68,.12);opacity:.6}
+.tile.wrong{
+  border-color:var(--red);background:rgba(239,68,68,.12);opacity:.6;
+}
 .tile.disabled{cursor:default;pointer-events:none}
 @keyframes correctPop{0%{transform:scale(.94)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
-.tile-title{font-size:.82rem;font-weight:600;color:var(--text);line-height:1.3;direction:rtl;
+.tile-title{font-size:.82rem;font-weight:600;color:var(--text);line-height:1.3;
   overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;margin-bottom:.15rem}
-.tile-artist{font-size:.7rem;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;width:100%;direction:rtl}
+.tile-artist{font-size:.7rem;color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;width:100%}
 
-/* Reveal */
+/* ── Reveal ── */
 .rbox{background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(168,85,247,.06));
   border:1px solid rgba(124,58,237,.3);border-radius:var(--rad);padding:1.1rem;text-align:center;width:100%}
-.rtitle{font-size:1.7rem;font-weight:700;
+.rtitle{font-family:var(--title-font);font-size:1.7rem;font-weight:700;
   background:linear-gradient(135deg,var(--accent2),var(--accent3));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
   line-height:1.2;margin-bottom:.2rem}
 .rartist{color:var(--muted);font-size:.85rem}
 
-/* Album art */
+/* ── Album art ── */
 .album-reveal{width:80px;height:80px;border-radius:10px;margin:0 auto .65rem;overflow:hidden;
   background:var(--bg3);box-shadow:0 4px 20px rgba(0,0,0,.5)}
 .album-reveal img{width:100%;height:100%;object-fit:cover}
 
-/* Winner */
-.winner-name{font-size:2.2rem;font-weight:800;
+/* ── Score flash ── */
+.pts-flash{font-family:var(--title-font);font-size:3rem;font-weight:800;
+  background:linear-gradient(135deg,var(--gold),#fbbf24);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  text-align:center;animation:ptsIn .4s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes ptsIn{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
+
+/* ── Winner ── */
+.winner-name{font-family:var(--title-font);font-size:2.2rem;font-weight:800;
   background:linear-gradient(135deg,var(--gold),#fbbf24);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
   text-align:center;animation:ptsIn .5s ease-out}
-@keyframes ptsIn{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
 
-/* Waiting dots */
+/* ── Waiting ── */
 .waiting-dots::after{content:'';animation:dots 1.2s steps(3,end) infinite}
 @keyframes dots{0%,100%{content:''}33%{content:'.'}66%{content:'..'}100%{content:'...'}}
 
-/* Toast */
+/* ── Toast ── */
 #toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(80px);
   background:var(--bg2);border:1px solid var(--border);border-radius:999px;
   padding:.45rem 1.1rem;font-size:.82rem;color:var(--text);transition:transform .3s;z-index:200;white-space:nowrap}
 #toast.show{transform:translateX(-50%) translateY(0)}
 
-/* Loading overlay */
+/* ── Loading overlay ── */
 #loadingOverlay{display:none;position:absolute;inset:0;background:rgba(10,10,15,.88);z-index:100;
   align-items:center;justify-content:center;flex-direction:column;gap:1rem}
 #loadingOverlay.show{display:flex}
@@ -257,16 +274,18 @@ input::placeholder{color:var(--muted)}
   border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* Theme picker */
-.theme-card{border-radius:10px;padding:.6rem .5rem;cursor:pointer;text-align:center;
-  border:2px solid transparent;transition:all .15s;user-select:none}
-.theme-card.active{border-color:var(--accent2)}
+/* ── Theme picker ── */
+.theme-card{
+  border-radius:10px;padding:.6rem .5rem;cursor:pointer;text-align:center;
+  border:2px solid transparent;transition:all .15s;user-select:none;
+}
+.theme-card.active{border-color:var(--accent2);}
 .theme-card-swatch{display:flex;gap:3px;justify-content:center;margin-bottom:.35rem}
 .theme-card-dot{width:10px;height:10px;border-radius:50%}
 .theme-card-name{font-size:.7rem;font-weight:600;color:var(--text)}
 .theme-card-sub{font-size:.6rem;color:var(--muted)}
 
-/* Accordion */
+/* ── Accordion ── */
 .acc-row{display:flex;align-items:center;justify-content:space-between;padding:.55rem .85rem;cursor:pointer;transition:background .15s;user-select:none}
 .acc-row:hover{background:var(--bg3)}
 .acc-left{display:flex;flex-direction:column;gap:.1rem}
@@ -278,25 +297,36 @@ input::placeholder{color:var(--muted)}
 .acc-body{background:var(--bg3);border-top:1px solid var(--border)}
 .acc-divider{height:1px;background:var(--border)}
 
-/* Round buttons */
+/* ── Round buttons ── */
 .round-btn{padding:.28rem .55rem;font-size:.73rem;width:auto}
 .round-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 
-/* Divider */
+/* ── Divider ── */
 .divider{width:100%;height:1px;background:var(--border);margin:.6rem 0}
 
-/* Error */
+/* ── Error ── */
 .err{color:#f87171;font-size:.76rem;text-align:center;min-height:1em;margin:.2rem 0}
 
-/* Active-pos toggle */
+/* ── Pos toggle ── */
 .active-pos{background:var(--accent)!important;color:#fff!important;border-color:var(--accent)!important}
 
-/* Confetti */
+/* ── Host decision panel ── */
+.decision-panel{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--rad);
+  padding:1rem;text-align:center;width:100%;
+}
+.decision-panel p{color:var(--muted);font-size:.85rem;margin-bottom:.75rem}
+
+/* ── Confetti ── */
 .confetti-piece{position:fixed;width:7px;height:7px;border-radius:2px;
   animation:confettiFall 1.3s ease-out forwards;pointer-events:none;z-index:999}
 @keyframes confettiFall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
 
-/* Scrollbar */
+/* ── RTL ── */
+.tile-artist{direction:rtl}
+.tile-title{direction:rtl}
+
+/* ── Scrollbar ── */
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
@@ -314,6 +344,7 @@ input::placeholder{color:var(--muted)}
   <!-- ══ HOME ══ -->
   <div class="screen active" id="sHome">
     <div style="margin:auto;text-align:center;width:100%">
+      <!-- Logo: musical note inside a square -->
       <div style="margin:0 auto .15rem;width:90px;height:90px">
         <svg viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -326,17 +357,23 @@ input::placeholder{color:var(--muted)}
               <stop offset="100%" style="stop-color:#e9d5ff"/>
             </linearGradient>
           </defs>
+          <!-- Rounded square background -->
           <rect x="5" y="5" width="80" height="80" rx="18" ry="18" fill="url(#sq)"/>
+          <!-- Subtle inner glow -->
           <rect x="5" y="5" width="80" height="80" rx="18" ry="18" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/>
+          <!-- Musical note -->
           <g fill="url(#note)">
+            <!-- Note head -->
             <ellipse cx="34" cy="62" rx="9" ry="6.5" transform="rotate(-15 34 62)"/>
+            <!-- Note stem -->
             <rect x="42" y="28" width="4" height="36" rx="2"/>
+            <!-- Note flag -->
             <path d="M46 28 Q68 36 62 52 Q54 42 46 44 Z"/>
           </g>
         </svg>
       </div>
       <h1>שיר בריבוע</h1>
-      <div class="ver">v1.1 · מולטיפלייר</div>
+      <div class="ver">v1.0 · מולטיפלייר</div>
       <p class="sub">שמע את השיר. בחר את הריבוע הנכון.<br>הראשון שעונה מקבל הכי הרבה נקודות.</p>
       <div class="card" style="margin-bottom:.6rem">
         <span class="lbl">שמך</span>
@@ -344,7 +381,7 @@ input::placeholder{color:var(--muted)}
       </div>
       <button class="btn" style="margin-bottom:.45rem" onclick="goCreate()">🎮 צור משחק</button>
       <button class="btn sec" onclick="goJoin()">🔑 הצטרף למשחק</button>
-      <p style="font-size:.68rem;color:#555;margin-top:1.2rem;line-height:1.8">
+      <p style="font-size:.68rem;color:#333;margin-top:1.2rem;line-height:1.8">
         המארח צריך Spotify Premium · שחקנים לא צריכים כלום<br>
         <span id="spotifyStatus" style="color:var(--green)"></span>
       </p>
@@ -356,13 +393,8 @@ input::placeholder{color:var(--muted)}
     <div style="margin:auto;text-align:center;width:100%">
       <h2 style="margin-bottom:.2rem">הצטרף למשחק</h2>
       <p class="sub">הכנס את קוד החדר מהמארח</p>
-      <!-- FIX: name shown/re-validated here -->
-      <div class="card" style="margin-bottom:.5rem">
-        <span class="lbl">שמך</span>
-        <input type="text" id="joinNameInput" placeholder="הכנס את שמך…" maxlength="16"/>
-      </div>
       <div class="card">
-        <span class="lbl">קוד חדר (4 ספרות/אותיות)</span>
+        <span class="lbl">קוד חדר</span>
         <input type="text" id="codeInput" placeholder="לדוג׳ AB12" maxlength="4"
           style="text-align:center;font-size:1.8rem;letter-spacing:.3em;text-transform:uppercase"/>
       </div>
@@ -376,7 +408,7 @@ input::placeholder{color:var(--muted)}
   <div class="screen" id="sLobby" style="padding:.6rem .7rem">
     <h2 style="margin-bottom:.05rem;font-size:1.4rem">לובי המשחק</h2>
     <p class="sub" style="margin-bottom:.2rem;font-size:.72rem">שתף את הקוד:</p>
-    <div class="room-code" id="lobbyCode" style="cursor:pointer" onclick="copyCode()" title="לחץ להעתקה">----</div>
+    <div class="room-code" id="lobbyCode" style="cursor:pointer" onclick="copyCode()" title="Tap to copy">----</div>
     <p style="font-size:.62rem;color:var(--muted);margin:.1rem 0 .35rem">לחץ להעתקה</p>
     <div class="card">
       <span class="lbl">שחקנים (<span id="playerCount">1</span>)</span>
@@ -385,24 +417,24 @@ input::placeholder{color:var(--muted)}
     <div class="card" id="hostConfig" style="padding:0;overflow:hidden;margin-bottom:.4rem">
 
       <!-- Genre accordion -->
-      <div class="acc-row" onclick="toggleAcc('genre')">
+      <div class="acc-row" id="accGenre" onclick="toggleAcc('genre')">
         <div class="acc-left">
           <span class="acc-title">🎵 ז'אנר</span>
-          <span class="acc-sub empty" id="summGenre">לחץ לבחירה</span>
+          <span class="acc-sub" id="summGenre">לחץ לבחירה</span>
         </div>
         <svg class="acc-chev" id="chevGenre" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <div class="acc-body" id="bodyGenre" style="display:none">
-        <div class="pgrid g3" id="genreGrid" style="padding:.45rem"></div>
+        <div class="pgrid g3" id="genreGrid" style="padding:.45rem;grid-template-columns:repeat(3,1fr)"></div>
       </div>
 
       <div class="acc-divider"></div>
 
       <!-- Decade accordion -->
-      <div class="acc-row" onclick="toggleAcc('decade')">
+      <div class="acc-row" id="accDecade" onclick="toggleAcc('decade')">
         <div class="acc-left">
           <span class="acc-title">📅 עשור</span>
-          <span class="acc-sub empty" id="summDecade">לחץ לבחירה</span>
+          <span class="acc-sub" id="summDecade">לחץ לבחירה</span>
         </div>
         <svg class="acc-chev" id="chevDecade" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
@@ -413,7 +445,7 @@ input::placeholder{color:var(--muted)}
       <div class="acc-divider"></div>
 
       <!-- Settings accordion -->
-      <div class="acc-row" onclick="toggleAcc('settings')">
+      <div class="acc-row" id="accSettings" onclick="toggleAcc('settings')">
         <div class="acc-left">
           <span class="acc-title">⚙️ הגדרות</span>
           <span class="acc-sub" id="summSettings">5 סיבובים · 12 ריבועים · 20ש</span>
@@ -432,10 +464,10 @@ input::placeholder{color:var(--muted)}
       <div class="acc-divider"></div>
 
       <!-- Theme accordion -->
-      <div class="acc-row" onclick="toggleAcc('theme')">
+      <div class="acc-row" id="accTheme" onclick="toggleAcc('theme')">
         <div class="acc-left">
           <span class="acc-title">🎨 עיצוב</span>
-          <span class="acc-sub" id="summTheme">Original</span>
+          <span class="acc-sub" id="summTheme">Candy Pop</span>
         </div>
         <svg class="acc-chev" id="chevTheme" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
@@ -454,7 +486,7 @@ input::placeholder{color:var(--muted)}
     <div style="margin:auto;text-align:center;width:100%">
       <h2 style="margin-bottom:.2rem">ממתין למארח</h2>
       <div class="waiting-dots" id="playerLobbyStatus" style="color:var(--muted);font-size:.83rem;margin-bottom:.75rem">ממתין</div>
-      <div style="font-size:.72rem;color:#555;margin-bottom:.75rem">חדר: <span id="playerRoomCode" style="color:var(--accent3);letter-spacing:.15em"></span></div>
+      <div style="font-size:.72rem;color:#444;margin-bottom:.75rem">חדר: <span id="playerRoomCode" style="color:var(--accent3);letter-spacing:.15em"></span></div>
       <div class="card">
         <span class="lbl">שחקנים</span>
         <div id="playerLobbyList"></div>
@@ -479,9 +511,10 @@ input::placeholder{color:var(--muted)}
 
   <!-- ══ HOST GAME ══ -->
   <div class="screen" id="sHostGame">
+    <!-- Compact topbar -->
     <div style="width:100%;display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem">
       <div>
-        <div id="hostSongCounter" style="font-weight:600;color:var(--text);font-size:.8rem">שיר 1</div>
+        <div id="hostSongCounter" style="font-weight:600;color:var(--text);font-size:.8rem">Song 1</div>
         <div id="hostGenreInfo" style="color:var(--muted);font-size:.65rem"></div>
         <div id="hostGameCode" style="color:var(--accent3);font-size:.62rem;letter-spacing:.1em"></div>
       </div>
@@ -502,23 +535,29 @@ input::placeholder{color:var(--muted)}
       </div>
     </div>
 
-    <div id="hostStatusPill" class="pill purple" style="margin-bottom:.3rem;align-self:flex-start">לחץ ▶ נגן להתחלת הסיבוב</div>
+    <div id="hostStatusPill" class="pill purple" style="margin-bottom:.3rem;align-self:flex-start">לחץ ▶ נגן להתחיל את הסיבוב</div>
 
     <div id="hostOpenSpotify" style="display:none;width:100%;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:var(--rad-sm);padding:.4rem .75rem;font-size:.7rem;color:#f87171;text-align:center;margin-bottom:.3rem">
       ⚠️ פתח את Spotify ונגן שיר כלשהו קודם, ואז לחץ נגן
     </div>
 
+    <!-- Play position + Play button in one row -->
     <div style="display:flex;gap:.35rem;width:100%;margin-bottom:.3rem">
       <button id="posStartBtn" class="btn sec sm active-pos" style="flex:1;font-size:.72rem" onclick="setPlayPosition('start')">▶ מהתחלה</button>
       <button id="posMidBtn"   class="btn sec sm"            style="flex:1;font-size:.72rem" onclick="setPlayPosition('middle')">⏩ מהאמצע</button>
       <button class="btn sm" id="hostPlayBtn" onclick="hostPlayClip()" style="flex:2">▶ נגן</button>
     </div>
 
-    <!-- Host tile grid — view-only, no submission -->
+    <!-- Correct answer shown to host -->
+    <div id="hostCorrectAnswer" style="display:none;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);border-radius:var(--rad-sm);padding:.35rem .75rem;font-size:.75rem;color:var(--green);text-align:center;margin-bottom:.3rem;font-weight:500"></div>
+
+    <!-- Host tile grid -->
     <div class="tile-grid" id="hostTileGrid" style="margin-bottom:.3rem"></div>
 
+    <!-- Players status — compact -->
     <div id="hostPlayerStatus" style="width:100%;margin-top:auto;display:flex;flex-wrap:wrap;gap:.2rem"></div>
 
+    <!-- Host decision after no correct guesses -->
     <div id="hostDecision" style="display:none;width:100%;margin-top:.3rem">
       <div style="display:flex;gap:.35rem;width:100%">
         <button class="btn green sm" style="flex:1" onclick="hostExtraTime()">▶ +10ש</button>
@@ -529,10 +568,11 @@ input::placeholder{color:var(--muted)}
 
   <!-- ══ PLAYER GAME ══ -->
   <div class="screen" id="sPlayerGame">
+    <!-- Compact topbar: song counter + score + timer + wave all in one row -->
     <div style="width:100%;display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem">
       <div>
-        <div id="playerSongCounter" style="font-weight:600;color:var(--text);font-size:.8rem">שיר 1</div>
-        <div id="myScore" style="font-size:.72rem;font-weight:600;color:var(--accent3)">0 נקודות</div>
+        <div id="playerSongCounter" style="font-weight:600;color:var(--text);font-size:.8rem">Song 1</div>
+        <div id="myScore" style="font-size:.72rem;font-weight:600;color:var(--accent3)">0 pts</div>
       </div>
       <div style="display:flex;align-items:center;gap:.5rem">
         <div class="wave off" id="playerWave" style="height:20px">
@@ -552,12 +592,15 @@ input::placeholder{color:var(--muted)}
 
     <div id="playerStatusPill" class="pill purple" style="margin-bottom:.3rem;align-self:flex-start">ממתין למארח…</div>
 
+    <!-- 12 tiles — main focus -->
     <div class="tile-grid" id="playerTileGrid"></div>
 
+    <!-- Picked confirmation — minimal -->
     <div id="playerPickedMsg" style="display:none;font-size:.72rem;color:var(--muted);margin-top:.25rem;text-align:center">
       ✅ <span id="playerPickedName" style="color:var(--text);font-weight:500"></span>
     </div>
 
+    <!-- Compact score row at bottom -->
     <div id="playerStatusList" style="width:100%;margin-top:auto;padding-top:.3rem;display:flex;flex-wrap:wrap;gap:.2rem"></div>
   </div>
 
@@ -603,7 +646,7 @@ input::placeholder{color:var(--muted)}
         <button class="btn sec" style="font-size:.78rem" onclick="leaveRoom()">עזוב חדר</button>
       </div>
       <div id="gameOverPlayerMsg" style="display:none;color:var(--muted);font-size:.8rem">
-        המשחק הסתיים! ממתין למארח…
+        Game over! Waiting for host…
       </div>
     </div>
   </div>
@@ -611,90 +654,97 @@ input::placeholder{color:var(--muted)}
 </div><!-- #app -->
 
 <script>
-'use strict';
 // ── Constants ──────────────────────────────────────────────
-const CLIENT_ID    = '343ddfcdf3ef445697e55ff537a2c18a';
+const CLIENT_ID   = '343ddfcdf3ef445697e55ff537a2c18a';
 const REDIRECT_URI = window.location.origin + '/';
 const SCOPES = 'user-read-email user-read-private user-modify-playback-state user-read-playback-state';
 
 const GENRES = ['פופ ישראלי','רוק ישראלי','מזרחית','מסיבה','להיטי כל הזמנים','פופ שנות ה-90','ישראלי חדש','ילדים ונוסטלגיה'];
 
-// Each entry is a list of Spotify search queries for that genre.
-// We use the Hebrew genre name directly as Spotify indexes Israeli music with these tags.
-// Multiple query variants increase the track pool.
+// Playlist search queries per genre — Spotify will return real curated playlists
+// 5 queries per genre — same count as English version to stay within rate limits
 const GENRE_QUERIES = {
-  'פופ ישראלי':       ['פופ ישראלי','pop israeli','israeli pop'],
-  'רוק ישראלי':       ['רוק ישראלי','rock israeli','israeli rock'],
-  'מזרחית':           ['מזרחית','mizrahi','muzika mizrahit'],
-  'מסיבה':            ['מסיבה ישראלית','israeli dance','rave israeli'],
-  'להיטי כל הזמנים': ['ישראלי קלאסי','israeli classics','להיטים ישראלים'],
-  'פופ שנות ה-90':    ['פופ ישראלי שנות ה-90','israeli 90s','90s israeli pop'],
-  'ישראלי חדש':       ['ישראלי חדש','new israeli music','israeli indie'],
-  'ילדים ונוסטלגיה':  ['ילדים ישראלי','israeli children','שירי ילדים'],
+  'פופ ישראלי':       ['Israeli pop music','Noa Kirel','Omer Adam','Static Ben El','Shiri Maimon'],
+  'רוק ישראלי':       ['Israeli rock','Arik Einstein','Aviv Geffen','Kaveret','HaDag Nachash'],
+  'מזרחית':           ['Israeli mizrahi','Eyal Golan','Zohar Argov','Sarit Hadad','Zehava Ben'],
+  'מסיבה':            ['Israeli dance hits','Static Ben El','Omer Adam dance','Noa Kirel','Harel Moyal'],
+  'להיטי כל הזמנים': ['Israeli classics','Naomi Shemer','Shlomo Artzi','Yehoram Gaon','Gali Atari'],
+  'פופ שנות ה-90':    ['Israeli 90s pop','Rita Israeli','Boaz Sharabi','Yehuda Poliker','Rami Kleinstein'],
+  'ישראלי חדש':       ['Israeli new music','Natan Goshen','Hanan Ben Ari','Ishay Ribo','Noga Erez'],
+  'ילדים ונוסטלגיה':  ['Israeli children songs','Naomi Shemer','Gevatron','Ilanit','Ofra Haza'],
 };
 const DECADES = ['1960s','1970s','1980s','1990s','2000s','2010s','2020s'];
 const MEDALS  = ['🥇','🥈','🥉'];
-const SCORE_TABLE = [10, 8, 6, 4, 2, 1]; // points by finish position
-
-const THEMES = [
-  { id:'default',  name:'Original',       sub:'Purple dark',        dots:['#7c3aed','#12121a','#a855f7'] },
-  { id:'candy',    name:'Candy Pop',      sub:'White · purple',     dots:['#7C3AED','#FFFFFF','#059669'] },
-  { id:'navy',     name:'Deep Navy',      sub:'Dark · sky blue',    dots:['#0F172A','#38BDF8','#34D399'] },
-  { id:'sunset',   name:'Sunset Warm',    sub:'Cream · orange',     dots:['#FFFBF5','#F97316','#16A34A'] },
-  { id:'obsidian', name:'Obsidian Glass', sub:'Black · purple 3D',  dots:['#0D0D14','#8B5CF6','#34D399'] },
-  { id:'frosted',  name:'Frosted Paper',  sub:'Blue · lifted tiles',dots:['#F0F4FF','#4338CA','#059669'] },
-  { id:'arcade',   name:'Neon Arcade',    sub:'Black · cyan glow',  dots:['#08090F','#22D3EE','#4ADE80'] },
-];
-
-const CLASSICAL_FILTER = /\b(HWV|BWV|Op\.|KV|Act \d|Scene \d|No\.\s*\d|Symphony|Concerto|Sonata|Quartet|Opus|Oratorio|Cantata|Overture|Fugue|Prelude|Serenade|Handel|Bach|Mozart|Beethoven|Brahms|Vivaldi|Schubert|Chopin|Liszt|Haydn|Telemann|Purcell|Corelli)\b/i;
+const ROUND_DURATION = 20;
+const EXTRA_DURATION = 10;
 
 // ── State ──────────────────────────────────────────────────
-let socket        = null;
-let myName        = '';
-let myId          = '';
-let roomCode      = '';
-let isHost        = false;
-let roundCount    = 5;
-let tileCount     = 12;
-let roundDuration = 20;
-let selectedGenres  = [];
-let selectedDecades = [];
-let accessToken   = '';
+let socket = null;
+let myName = '', myId = '', roomCode = '', isHost = false;
+let roundCount = 5;
+let selectedGenres = [], selectedDecades = [], israeliMode = false;
+let accessToken = '', refreshToken = '';
 let timerInterval = null;
-let revealTimeout = null;
-let playedIds     = new Set();
-let currentSongs  = [];
-let currentSongIdx= 0;
-let currentOptions= [];
-let myPickIdx     = null;  // null = not picked yet
-let playPosition  = 'start';
-let currentTheme  = 'default';
-let lobbyBuilt    = false;
+let playedIds = new Set();
+let currentSongs = [];
+let currentSongIdx = 0;
+let currentOptions = []; // 12 tile options for current round
+let myPickIdx = null;    // index of currently selected tile
+let playPosition = 'start';
+let tileCount = 12;
+let roundDuration = 20;
+let currentTheme = 'default';
 
-// ── Token refresh (single scheduled instance) ──────────────
-let _refreshTimer = null;
-function scheduleRefresh(expiresIn) {
-  if (_refreshTimer) clearTimeout(_refreshTimer);
-  _refreshTimer = setTimeout(doRefreshToken, (expiresIn - 60) * 1000);
+const THEMES = [
+  { id:'default', name:'Original',      sub:'Purple dark',
+    dots:['#7c3aed','#12121a','#a855f7'] },
+  { id:'candy',   name:'Candy Pop',     sub:'White · purple',
+    dots:['#7C3AED','#FFFFFF','#059669'] },
+  { id:'navy',    name:'Deep Navy',     sub:'Dark · sky blue',
+    dots:['#0F172A','#38BDF8','#34D399'] },
+  { id:'sunset',  name:'Sunset Warm',   sub:'Cream · orange',
+    dots:['#FFFBF5','#F97316','#16A34A'] },
+  { id:'obsidian',name:'Obsidian Glass',sub:'Black · purple 3D',
+    dots:['#0D0D14','#8B5CF6','#34D399'] },
+  { id:'frosted', name:'Frosted Paper', sub:'Blue · lifted tiles',
+    dots:['#F0F4FF','#4338CA','#059669'] },
+  { id:'arcade',  name:'Neon Arcade',   sub:'Black · cyan glow',
+    dots:['#08090F','#22D3EE','#4ADE80'] },
+];
+
+function setTheme(id, silent = false) {
+  currentTheme = id;
+  const app = document.getElementById('app');
+  if (id === 'default') { app.removeAttribute('data-theme'); }
+  else { app.setAttribute('data-theme', id); }
+  const t = THEMES.find(x => x.id === id);
+  const summEl = document.getElementById('summTheme');
+  if (summEl) summEl.textContent = t ? t.name : 'Original';
+  document.querySelectorAll('.theme-card').forEach(c => c.classList.toggle('active', c.dataset.theme === id));
+  // Only broadcast when host changes it locally (not when receiving from server)
+  if (!silent && isHost && socket) sendConfig();
 }
-async function doRefreshToken() {
-  const rt = sessionStorage.getItem('rt');
-  if (!rt) return;
-  try {
-    const res  = await fetch('https://accounts.spotify.com/api/token', {
-      method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body: new URLSearchParams({ grant_type:'refresh_token', refresh_token:rt, client_id:CLIENT_ID })
-    });
-    const data = await res.json();
-    if (data.access_token) {
-      accessToken = data.access_token;
-      sessionStorage.setItem('at', accessToken);
-      if (data.refresh_token) sessionStorage.setItem('rt', data.refresh_token);
-      scheduleRefresh(data.expires_in || 3600);
-      if (socket && socket.connected && roomCode) socket.emit('host_token', { token: accessToken });
-    }
-  } catch { /* silent */ }
+
+function buildThemePicker() {
+  const grid = document.getElementById('themeGrid'); grid.innerHTML = '';
+  THEMES.forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'theme-card' + (t.id === currentTheme ? ' active' : '');
+    card.dataset.theme = t.id;
+    card.innerHTML = `
+      <div class="theme-card-swatch">
+        ${t.dots.map(c=>`<div class="theme-card-dot" style="background:${c}"></div>`).join('')}
+      </div>
+      <div class="theme-card-name">${t.name}</div>
+      <div class="theme-card-sub">${t.sub}</div>`;
+    card.onclick = () => setTheme(t.id);
+    // Give each card a preview bg based on its first dot color
+    card.style.background = t.id === 'default' ? '#12121a' : t.dots[0];
+    card.style.borderRadius = '10px';
+    grid.appendChild(card);
+  });
 }
+let revealTimeout = null; // track reveal animation timeout so it can be cancelled
 
 // ── PKCE Auth ──────────────────────────────────────────────
 function generateRandom(len) {
@@ -703,11 +753,12 @@ function generateRandom(len) {
   return btoa(String.fromCharCode(...arr)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
 }
 async function generateChallenge(v) {
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v));
+  const data = new TextEncoder().encode(v);
+  const digest = await crypto.subtle.digest('SHA-256', data);
   return btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
 }
 async function loginSpotify() {
-  const verifier  = generateRandom(64);
+  const verifier = generateRandom(64);
   const challenge = await generateChallenge(verifier);
   sessionStorage.setItem('cv', verifier);
   sessionStorage.setItem('pendingName', myName);
@@ -719,27 +770,42 @@ async function loginSpotify() {
   window.location.href = 'https://accounts.spotify.com/authorize?' + params;
 }
 async function exchangeCode(code) {
-  const res  = await fetch('https://accounts.spotify.com/api/token', {
+  const verifier = sessionStorage.getItem('cv');
+  const res = await fetch('https://accounts.spotify.com/api/token', {
     method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
-    body: new URLSearchParams({
-      grant_type:'authorization_code', code,
-      redirect_uri:REDIRECT_URI, client_id:CLIENT_ID,
-      code_verifier: sessionStorage.getItem('cv')
-    })
+    body: new URLSearchParams({ grant_type:'authorization_code', code, redirect_uri:REDIRECT_URI, client_id:CLIENT_ID, code_verifier:verifier })
   });
   const data = await res.json();
   if (!data.access_token) throw new Error(data.error_description || 'Auth failed');
   return data;
 }
+async function refreshAccessToken() {
+  const rt = sessionStorage.getItem('rt');
+  if (!rt) return;
+  try {
+    const res = await fetch('https://accounts.spotify.com/api/token', {
+      method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body: new URLSearchParams({ grant_type:'refresh_token', refresh_token:rt, client_id:CLIENT_ID })
+    });
+    const data = await res.json();
+    if (data.access_token) {
+      accessToken = data.access_token;
+      sessionStorage.setItem('at', accessToken);
+      if (data.refresh_token) sessionStorage.setItem('rt', data.refresh_token);
+      setTimeout(refreshAccessToken, (data.expires_in - 60) * 1000);
+      if (socket && socket.connected && roomCode) socket.emit('host_token', { token: accessToken });
+    }
+  } catch {}
+}
 
-// ── Spotify API ────────────────────────────────────────────
-async function spotifyFetch(url, options = {}) {
+// ── Spotify Connect API ────────────────────────────────────
+async function spotifyFetch(url, options={}) {
   accessToken = sessionStorage.getItem('at') || accessToken;
   const headers = { Authorization: 'Bearer ' + accessToken };
   if (options.method && options.method !== 'GET') headers['Content-Type'] = 'application/json';
   let res = await fetch(url, { ...options, headers });
   if (res.status === 401) {
-    await doRefreshToken();
+    await refreshAccessToken();
     accessToken = sessionStorage.getItem('at') || accessToken;
     headers.Authorization = 'Bearer ' + accessToken;
     res = await fetch(url, { ...options, headers });
@@ -751,38 +817,8 @@ async function spotifyPlay(uri, positionMs) {
     method:'PUT', body: JSON.stringify({ uris:[uri], position_ms:positionMs })
   });
 }
-// FIX: only the host calls spotifyPause — guarded at call sites
-function spotifyPause() {
-  if (!isHost) return;
-  spotifyFetch('https://api.spotify.com/v1/me/player/pause', { method:'PUT' }).catch(() => {});
-}
-
-// ── Theme ──────────────────────────────────────────────────
-function setTheme(id, silent = false) {
-  currentTheme = id;
-  const app = document.getElementById('app');
-  id === 'default' ? app.removeAttribute('data-theme') : app.setAttribute('data-theme', id);
-  const t = THEMES.find(x => x.id === id);
-  const el = document.getElementById('summTheme');
-  if (el) el.textContent = t ? t.name : 'Original';
-  document.querySelectorAll('.theme-card').forEach(c => c.classList.toggle('active', c.dataset.theme === id));
-  if (!silent && isHost && socket) sendConfig();
-}
-function buildThemePicker() {
-  const grid = document.getElementById('themeGrid');
-  grid.innerHTML = '';
-  THEMES.forEach(t => {
-    const card = document.createElement('div');
-    card.className = 'theme-card' + (t.id === currentTheme ? ' active' : '');
-    card.dataset.theme = t.id;
-    card.style.cssText = `background:${t.id === 'default' ? '#12121a' : t.dots[0]};border-radius:10px`;
-    card.innerHTML = `
-      <div class="theme-card-swatch">${t.dots.map(c => `<div class="theme-card-dot" style="background:${c}"></div>`).join('')}</div>
-      <div class="theme-card-name">${t.name}</div>
-      <div class="theme-card-sub">${t.sub}</div>`;
-    card.onclick = () => setTheme(t.id);
-    grid.appendChild(card);
-  });
+async function spotifyPause() {
+  spotifyFetch('https://api.spotify.com/v1/me/player/pause', { method:'PUT' }).catch(()=>{});
 }
 
 // ── Socket ─────────────────────────────────────────────────
@@ -808,9 +844,9 @@ function connectSocket() {
 
   socket.on('error', msg => { hideLoading(); showToast(msg); showErr('joinErr', msg); });
 
-  socket.on('room_update', ({ phase, players, roundCount: rc, theme: th }) => {
+  socket.on('room_update', ({ phase, players, currentSongIdx: si, roundCount: rc, selectedGenres: sg, selectedDecades: sd, israeliMode: im, tileCount: tc, roundDuration: rd, theme: th }) => {
     if (rc) roundCount = rc;
-    if (th) setTheme(th, true);
+    if (th) setTheme(th, true); // silent — from server
     document.getElementById('playerCount').textContent = players.length;
     renderLobbyPlayers(players);
     renderPlayerLobbyList(players);
@@ -827,28 +863,31 @@ function connectSocket() {
     roundCount = rc;
     if (rd) roundDuration = rd;
     if (tc) tileCount = tc;
-    if (th) setTheme(th, true);
+    if (th) setTheme(th, true); // silent — from server
     currentSongIdx = 0;
     currentOptions = options;
     myPickIdx = null;
-    isHost ? initHostGame() : initPlayerGame(options);
+    if (isHost) { initHostGame(); } else { initPlayerGame(options); }
   });
 
   socket.on('song_playing', () => {
     document.getElementById(isHost ? 'hostWave' : 'playerWave').classList.remove('off');
     if (isHost) {
-      setPill('hostStatusPill', '🎵 מנגן — שחקנים בוחרים!', 'green');
-      setEl('hostPlayBtn', el => { el.disabled = true; el.textContent = 'מנגן…'; });
-      enableHostTiles();
+      document.getElementById('hostStatusPill').textContent = `🎵 Playing — players are picking!`;
+      document.getElementById('hostStatusPill').className = 'pill green';
+      document.getElementById('hostPlayBtn').disabled = true;
+      document.getElementById('hostPlayBtn').textContent = 'מנגן…';
     } else {
-      setPill('playerStatusPill', '🎵 הקשב ובחר!', 'green');
+      document.getElementById('playerStatusPill').textContent = '🎵 הקשב ובחר!';
+      document.getElementById('playerStatusPill').className = 'pill green';
       enableTiles();
     }
   });
 
   socket.on('timer_start', ({ duration }) => {
-    // FIX: removed dead `timerDuration` global assignment
-    startClientTimer(duration, Date.now() + duration * 1000);
+    timerDuration = duration;
+    const localEnd = Date.now() + duration * 1000;
+    startClientTimer(duration, localEnd);
   });
 
   socket.on('all_picked', () => {
@@ -856,12 +895,13 @@ function connectSocket() {
     if (isHost) {
       spotifyPause();
       document.getElementById('hostWave').classList.add('off');
-      setPill('hostStatusPill', 'כולם בחרו — מחשב…', 'amber');
-      disableHostTiles();
+      document.getElementById('hostStatusPill').textContent = 'כולם בחרו — מחשב…';
+      document.getElementById('hostStatusPill').className = 'pill amber';
     } else {
       disableTiles();
       document.getElementById('playerWave').classList.add('off');
-      setPill('playerStatusPill', 'כולם בחרו — מחשב…', 'amber');
+      document.getElementById('playerStatusPill').textContent = 'כולם בחרו — מחשב…';
+      document.getElementById('playerStatusPill').className = 'pill amber';
     }
   });
 
@@ -869,44 +909,44 @@ function connectSocket() {
     stopClientTimer();
     if (isHost) {
       document.getElementById('hostDecision').style.display = 'block';
-      document.getElementById('hostPlayBtn').style.display  = 'none';
+      document.getElementById('hostPlayBtn').style.display = 'none';
+      document.getElementById('hostStatusPill').textContent = 'אף אחד לא ניחש!';
+      document.getElementById('hostStatusPill').className = 'pill amber';
       document.getElementById('hostWave').classList.add('off');
-      setPill('hostStatusPill', 'אף אחד לא ניחש!', 'amber');
-      disableHostTiles();
     } else {
       disableTiles();
+      document.getElementById('playerStatusPill').textContent = '❌ אף אחד לא ניחש — ממתין למארח…';
+      document.getElementById('playerStatusPill').className = 'pill amber';
       document.getElementById('playerWave').classList.add('off');
-      setPill('playerStatusPill', '❌ אף אחד לא ניחש — ממתין למארח…', 'amber');
     }
   });
 
   socket.on('extra_time', ({ duration }) => {
-    // FIX: removed dead `timerDuration` global assignment
+    timerDuration = duration;
     myPickIdx = null;
     document.getElementById('playerPickedMsg').style.display = 'none';
     if (isHost) {
       document.getElementById('hostDecision').style.display = 'none';
+      document.getElementById('hostPlayBtn').style.display = 'block';
+      document.getElementById('hostPlayBtn').disabled = false;
+      document.getElementById('hostPlayBtn').textContent = '▶ נגן שוב (+' + duration + 'ש)';
+      document.getElementById('hostStatusPill').textContent = `+${duration}ש — לחץ נגן להמשך!`;
+      document.getElementById('hostStatusPill').className = 'pill amber';
       document.getElementById('hostWave').classList.add('off');
-      setEl('hostPlayBtn', el => {
-        el.style.display  = 'block';
-        el.disabled       = false;
-        el.textContent    = `▶ נגן שוב (+${duration}ש)`;
-      });
-      setPill('hostStatusPill', `+${duration}ש — לחץ נגן להמשך!`, 'amber');
-      // Reset selection; tiles will be re-enabled when song_playing fires
+      // Reset host tile selection
       document.querySelectorAll('#hostTileGrid .tile').forEach(t => t.classList.remove('selected'));
-      myPickIdx = null;
     } else {
       enableTiles();
       resetTileSelection();
+      document.getElementById('playerStatusPill').textContent = `+${duration}ש — ממתין למארח לנגן…`;
+      document.getElementById('playerStatusPill').className = 'pill amber';
       document.getElementById('playerWave').classList.add('off');
-      setPill('playerStatusPill', `+${duration}ש — ממתין למארח לנגן…`, 'amber');
     }
+    // Don't start client timer yet — wait for host to click Play → song_playing → timer_start
   });
 
   socket.on('reveal', ({ song, correctIdx, players, isLast }) => {
     stopClientTimer();
-    // FIX: only host pauses Spotify
     spotifyPause();
     if (song?.id) playedIds.add(song.id);
     highlightTiles(correctIdx);
@@ -920,174 +960,140 @@ function connectSocket() {
     if (tc) tileCount = tc;
     currentOptions = options;
     myPickIdx = null;
-    isHost ? initHostGame() : initPlayerGame(options);
+    if (isHost) { initHostGame(); } else { initPlayerGame(options); }
   });
 
-  socket.on('game_over', ({ players }) => {
-    stopClientTimer();
-    spotifyPause();
-    showGameOver(players);
-  });
-
-  socket.on('back_to_lobby', () => {
-    playedIds = new Set(); currentSongs = []; currentSongIdx = 0;
-    myPickIdx = null; selectedGenres = []; selectedDecades = [];
-    lobbyBuilt = false;
-    showScreen(isHost ? 'sLobby' : 'sPlayerLobby');
-  });
-
-  socket.on('host_left', () => { showToast('המארח עזב את המשחק'); leaveRoom(); });
-
+  socket.on('game_over',    ({ players }) => { stopClientTimer(); spotifyPause(); showGameOver(players); });
+  socket.on('back_to_lobby', () => { playedIds = new Set(); currentSongs = []; currentSongIdx = 0; myPickIdx = null; selectedGenres = []; selectedDecades = []; israeliMode = false; window._lobbyBuilt = false; showScreen(isHost ? 'sLobby' : 'sPlayerLobby'); });
+  socket.on('host_left',    () => { showToast('המארח עזב את המשחק'); leaveRoom(); });
   socket.on('songs_error', msg => {
     hideLoading();
-    setEl('startGameBtn', el => { el.disabled = false; el.textContent = 'התחל משחק ▶'; });
+    document.getElementById('startGameBtn').disabled = false;
+    document.getElementById('startGameBtn').textContent = 'התחל משחק ▶';
     showErr('lobbyErr', '⚠️ ' + msg);
   });
-
-  socket.on('host_status', ({ status }) => {
-    if (isHost) return;
-    const el = document.getElementById('playerLobbyStatus');
-    if (el) el.textContent = status === 'loading' ? 'המארח טוען שירים' : 'ממתין';
-    if (status === 'loading') showToast('המארח טוען שירים…');
+  socket.on('host_status',  ({ status }) => {
+    if (!isHost) {
+      const el = document.getElementById('playerLobbyStatus');
+      if (el) el.textContent = status === 'loading' ? 'המארח טוען שירים' : 'ממתין';
+      if (status === 'loading') showToast('המארח טוען שירים…');
+    }
   });
 }
 
 // ── Navigation ─────────────────────────────────────────────
-function getNameFromHome() {
-  return document.getElementById('nameInput').value.trim();
-}
 function goCreate() {
-  myName = getNameFromHome();
+  myName = document.getElementById('nameInput').value.trim();
   if (!myName) { showToast('הכנס את שמך קודם'); return; }
-  isHost = true;
-  connectSocket();
+  isHost = true; connectSocket();
   showLoading('יוצר חדר…');
   socket.emit('create_room', { name: myName });
 }
 function goJoin() {
-  myName = getNameFromHome();
+  myName = document.getElementById('nameInput').value.trim();
   if (!myName) { showToast('הכנס את שמך קודם'); return; }
-  isHost = false;
-  // Pre-fill join screen name field
-  document.getElementById('joinNameInput').value = myName;
-  showScreen('sJoin');
+  isHost = false; showScreen('sJoin');
 }
 function joinRoom() {
-  // FIX: re-read name from join screen in case user arrived here fresh
-  const nameFromJoin = document.getElementById('joinNameInput').value.trim();
-  if (nameFromJoin) myName = nameFromJoin;
-  if (!myName) { showErr('joinErr', 'הכנס את שמך קודם'); return; }
-
   const code = document.getElementById('codeInput').value.trim().toUpperCase();
-  // FIX: validate full 4-character code
-  if (code.length < 4) { showErr('joinErr', 'הכנס קוד חדר בן 4 תווים'); return; }
-
-  connectSocket();
-  showLoading('מצטרף…');
+  if (code.length < 2) { showErr('joinErr','הכנס את קוד החדר'); return; }
+  connectSocket(); showLoading('מצטרף…');
   socket.emit('join_room', { code, name: myName });
 }
 function leaveRoom() {
-  if (socket) { socket.disconnect(); socket = null; }
-  roomCode = ''; myId = ''; isHost = false;
-  stopClientTimer();
-  showScreen('sHome');
+  if (socket) socket.disconnect();
+  socket = null; roomCode = ''; myId = ''; isHost = false;
+  stopClientTimer(); showScreen('sHome');
 }
 
 // ── Lobby ──────────────────────────────────────────────────
 function toggleAcc(name) {
-  const key  = name.charAt(0).toUpperCase() + name.slice(1);
-  const body = document.getElementById('body'  + key);
-  const chev = document.getElementById('chev'  + key);
-  const open = body.style.display !== 'none';
-  body.style.display = open ? 'none' : 'block';
-  chev.classList.toggle('open', !open);
+  const key = name.charAt(0).toUpperCase() + name.slice(1);
+  const body = document.getElementById('body' + key);
+  const chev = document.getElementById('chev' + key);
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  chev.classList.toggle('open', !isOpen);
 }
 
 function updateSummaries() {
+  // Genre
   const gEl = document.getElementById('summGenre');
-  gEl.textContent = selectedGenres.length ? selectedGenres.join(', ') : 'לחץ לבחירה';
-  gEl.className   = 'acc-sub' + (selectedGenres.length ? '' : ' empty');
+  const gLabel = [...selectedGenres];
+  gEl.textContent = gLabel.length ? gLabel.join(', ') : 'לחץ לבחירה';
+  gEl.className = 'acc-sub' + (gLabel.length ? '' : ' empty');
 
+  // Decade
   const dEl = document.getElementById('summDecade');
   dEl.textContent = selectedDecades.length ? selectedDecades.join(', ') : 'לחץ לבחירה';
-  dEl.className   = 'acc-sub' + (selectedDecades.length ? '' : ' empty');
+  dEl.className = 'acc-sub' + (selectedDecades.length ? '' : ' empty');
 
-  document.getElementById('summSettings').textContent =
-    `${roundCount} סיבובים · ${tileCount} ריבועים · ${roundDuration}ש`;
+  // Settings
+  document.getElementById('summSettings').textContent = `${roundCount} סיבובים · ${tileCount} ריבועים · ${roundDuration}ש`;
 }
 
 function buildLobby() {
-  // Reset state
-  selectedGenres = []; selectedDecades = [];
+  document.querySelectorAll('.pick.on').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('.round-btn.active').forEach(b => b.classList.remove('active'));
+  selectedGenres = []; selectedDecades = []; israeliMode = false;
   roundCount = 5; tileCount = 12; roundDuration = 20;
 
-  // Genre grid
-  const gg = document.getElementById('genreGrid');
-  gg.innerHTML = '';
+  const gg = document.getElementById('genreGrid'); gg.innerHTML = '';
   GENRES.forEach(g => {
-    const b = document.createElement('button');
-    b.className = 'pick';
-    b.textContent = g;
+    const b = document.createElement('button'); b.className = 'pick'; b.textContent = g;
     b.onclick = () => {
       b.classList.toggle('on');
-      selectedGenres = b.classList.contains('on')
-        ? [...selectedGenres, g]
-        : selectedGenres.filter(x => x !== g);
+      selectedGenres = b.classList.contains('on') ? [...selectedGenres,g] : selectedGenres.filter(x=>x!==g);
       updateSummaries(); sendConfig();
     };
     gg.appendChild(b);
   });
 
-  // Decade grid
-  const dg = document.getElementById('decadeGrid');
-  dg.innerHTML = '';
+
+  const dg = document.getElementById('decadeGrid'); dg.innerHTML = '';
   DECADES.forEach(d => {
-    const b = document.createElement('button');
-    b.className = 'pick';
-    b.textContent = d;
+    const b = document.createElement('button'); b.className = 'pick'; b.textContent = d;
     b.onclick = () => {
       b.classList.toggle('on');
-      selectedDecades = b.classList.contains('on')
-        ? [...selectedDecades, d]
-        : selectedDecades.filter(x => x !== d);
+      selectedDecades = b.classList.contains('on') ? [...selectedDecades,d] : selectedDecades.filter(x=>x!==d);
       updateSummaries(); sendConfig();
     };
     dg.appendChild(b);
   });
 
-  // Round count buttons
-  const rb = document.getElementById('roundBtns');
-  rb.innerHTML = '';
+  const rb = document.getElementById('roundBtns'); rb.innerHTML = '';
   for (let n = 4; n <= 10; n++) {
-    const b = makeOptionBtn(String(n), n === 5, () => {
-      document.querySelectorAll('.round-btn').forEach(x => x.classList.remove('active'));
+    const b = document.createElement('button');
+    b.className = 'btn sec round-btn' + (n===5?' active':'');
+    b.textContent = n;
+    b.onclick = () => {
+      document.querySelectorAll('.round-btn').forEach(x=>x.classList.remove('active'));
       b.classList.add('active'); roundCount = n; updateSummaries(); sendConfig();
-    });
-    b.classList.add('round-btn');
+    };
     rb.appendChild(b);
   }
 
-  // Tile count buttons
-  const tc = document.getElementById('tileCountBtns');
-  tc.innerHTML = '';
+  const tc = document.getElementById('tileCountBtns'); tc.innerHTML = '';
   [4, 6, 8, 12].forEach(n => {
-    const b = makeOptionBtn(n + ' ריבועים', n === 12, () => {
-      document.querySelectorAll('.tile-count-btn').forEach(x => x.classList.remove('active'));
+    const b = document.createElement('button');
+    b.className = 'btn sec round-btn tile-count-btn' + (n===12?' active':'');
+    b.textContent = n + ' ריבועים';
+    b.onclick = () => {
+      document.querySelectorAll('.tile-count-btn').forEach(x=>x.classList.remove('active'));
       b.classList.add('active'); tileCount = n; updateSummaries(); sendConfig();
-    });
-    b.classList.add('round-btn', 'tile-count-btn');
+    };
     tc.appendChild(b);
   });
 
-  // Duration buttons
-  const dc = document.getElementById('durationBtns');
-  dc.innerHTML = '';
+  const dc = document.getElementById('durationBtns'); dc.innerHTML = '';
   [10, 20, 30].forEach(n => {
-    const b = makeOptionBtn(n + 'ש', n === 20, () => {
-      document.querySelectorAll('.dur-btn').forEach(x => x.classList.remove('active'));
+    const b = document.createElement('button');
+    b.className = 'btn sec round-btn dur-btn' + (n===20?' active':'');
+    b.textContent = n + 'ש';
+    b.onclick = () => {
+      document.querySelectorAll('.dur-btn').forEach(x=>x.classList.remove('active'));
       b.classList.add('active'); roundDuration = n; updateSummaries(); sendConfig();
-    });
-    b.classList.add('round-btn', 'dur-btn');
+    };
     dc.appendChild(b);
   });
 
@@ -1095,52 +1101,42 @@ function buildLobby() {
   buildThemePicker();
 }
 
-function makeOptionBtn(label, isActive, onClick) {
-  const b = document.createElement('button');
-  b.className = 'btn sec' + (isActive ? ' active' : '');
-  b.textContent = label;
-  b.onclick = onClick;
-  return b;
-}
-
 function sendConfig() {
-  if (!socket || !isHost) return;
-  socket.emit('set_config', { roundCount, selectedGenres, selectedDecades, tileCount, roundDuration, theme: currentTheme });
+  if (!socket || !isHost) return; // players must never send config
+  socket.emit('set_config', { roundCount, selectedGenres, selectedDecades, israeliMode, tileCount, roundDuration, theme: currentTheme });
 }
 
 function renderLobbyPlayers(players) {
-  const c = document.getElementById('lobbyPlayers');
-  c.innerHTML = '';
+  const c = document.getElementById('lobbyPlayers'); c.innerHTML = '';
   players.forEach(p => {
-    const d = document.createElement('div');
-    d.className = 'player-row';
-    d.innerHTML = `<span class="name">${esc(p.name)}${p.isHost ? '<span class="host-badge">מארח</span>' : ''}</span>`;
+    const d = document.createElement('div'); d.className = 'player-row';
+    d.innerHTML = `<span class="name">${esc(p.name)}${p.isHost?'<span class="host-badge">מארח</span>':''}</span>`;
     c.appendChild(d);
   });
 }
 function renderPlayerLobbyList(players) {
-  const c = document.getElementById('playerLobbyList');
-  if (!c) return;
-  c.innerHTML = '';
+  const c = document.getElementById('playerLobbyList'); if (!c) return; c.innerHTML = '';
   players.forEach(p => {
-    const d = document.createElement('div');
-    d.className = 'player-row';
-    d.innerHTML = `<span class="name">${esc(p.name)}${p.isHost ? '<span class="host-badge">מארח</span>' : ''}</span>`;
+    const d = document.createElement('div'); d.className = 'player-row';
+    d.innerHTML = `<span class="name">${esc(p.name)}${p.isHost?'<span class="host-badge">מארח</span>':''}</span>`;
     c.appendChild(d);
   });
 }
 
 // ── Fetch Songs ────────────────────────────────────────────
 async function hostStartGame() {
-  if (!selectedGenres.length)  { showErr('lobbyErr', 'בחר לפחות ז\'אנר אחד'); return; }
-  if (!selectedDecades.length) { showErr('lobbyErr', 'בחר לפחות עשור אחד'); return; }
+  const btn = document.getElementById('startGameBtn');
+  const errEl = document.getElementById('lobbyErr');
 
+  // Step 1: validate selections
+  if (!selectedGenres.length) { showErr('lobbyErr','בחר לפחות ז\'אנר אחד'); return; }
+  if (!selectedDecades.length) { showErr('lobbyErr','בחר לפחות עשור אחד'); return; }
+
+  // Step 2: check token
   const tok = sessionStorage.getItem('at');
-  if (!tok) { showErr('lobbyErr', 'לא מחובר לספוטיפיי — חזור והתחבר'); return; }
+  if (!tok) { showErr('lobbyErr','לא מחובר לספוטיפיי — חזור והתחבר'); return; }
   accessToken = tok;
 
-  const btn   = document.getElementById('startGameBtn');
-  const errEl = document.getElementById('lobbyErr');
   btn.disabled = true; btn.textContent = 'טוען שירים…';
   errEl.textContent = '';
   socket.emit('set_status', { status: 'loading' });
@@ -1148,115 +1144,93 @@ async function hostStartGame() {
   let songs = [];
   try {
     songs = await fetchSongs();
-  } catch (e) {
-    socket.emit('set_status', { status: 'ready' });
+  } catch(e) {
     btn.disabled = false; btn.textContent = 'התחל משחק ▶';
-    showErr('lobbyErr', '❌ שגיאה בטעינת שירים: ' + e.message);
-    return;
+    socket.emit('set_status', { status: 'ready' });
+    showErr('lobbyErr', '❌ שגיאה בטעינת שירים: ' + e.message); return;
   }
 
   socket.emit('set_status', { status: 'ready' });
   btn.disabled = false; btn.textContent = 'התחל משחק ▶';
 
-  // FIX: single consolidated error — fetchSongs returns [] on shortage, so just check here
-  if (!songs.length) return; // fetchSongs already showed the error
+  if (!songs || songs.length === 0) {
+    showErr('lobbyErr', `❌ לא נמצאו שירים. ז\'אנרים: [${selectedGenres.join(',')}] עשורים: [${selectedDecades.join(',')}]`);
+    return;
+  }
 
+  // Step 5: send to server
   currentSongs = songs;
-  socket.emit('songs_ready', {
-    songs: songs.map(s => ({
-      id: s.id, title: s.title, artist: s.artist, uri: s.uri,
-      releaseYear: s.releaseYear, durationMs: s.durationMs,
-      popularity: s.popularity, albumArt: s.albumArt
-    }))
-  });
+  const songsForServer = songs.map(s => ({
+    id: s.id, title: s.title, artist: s.artist, uri: s.uri,
+    releaseYear: s.releaseYear, durationMs: s.durationMs,
+    lang: s.lang, albumArt: s.albumArt
+  }));
+  socket.emit('songs_ready', { songs: songsForServer });
 }
 
-// ── Song fetching ──────────────────────────────────────────
 async function fetchSongs() {
+  console.log('🎵 fetchSongs — Genres:', selectedGenres, 'Decades:', selectedDecades);
   const allTracks = [];
-  const seenIds   = new Set();
-  const decadeYears = selectedDecades.map(d => parseInt(d));
+  const promises = [];
 
-  // Build task list: for each selected genre × each decade × each query variant,
-  // search Spotify using the Hebrew/English genre term + year range
-  const tasks = [];
-  for (const genre of selectedGenres) {
-    const queryTerms = GENRE_QUERIES[genre] || [genre];
-    for (const decade of selectedDecades) {
-      const year = parseInt(decade);
-      for (const term of queryTerms) {
-        tasks.push({ term, year, genre });
-      }
+  for (const decade of selectedDecades) {
+    const year = parseInt(decade);
+    for (const genre of selectedGenres) {
+      const queries = GENRE_QUERIES[genre] || [genre];
+      queries.forEach(q => {
+        promises.push(searchTracks(`${q} year:${year}-${year+9}`, year, allTracks, false));
+        promises.push(searchTracks(`${q} year:${year}-${year+4}`, year, allTracks, false));
+      });
     }
   }
+  await Promise.all(promises);
 
-  const btn = document.getElementById('startGameBtn');
-  let done = 0;
+  const fresh = allTracks.filter(t => !playedIds.has(t.id));
+  // popularity is no longer returned by Spotify, so we just randomise the pool.
+  const top = shuffleArr(fresh).slice(0, 120);
+  console.log(`🎵 Final pool: ${top.length} tracks`);
 
-  for (const { term, year } of tasks) {
-    done++;
-    if (btn) btn.textContent = `טוען שירים… ${done}/${tasks.length}`;
-    await searchByGenre(term, year, allTracks, seenIds);
-    await new Promise(r => setTimeout(r, 150)); // 150ms gap — ~6 req/s, safe
-  }
-
-  const inDecade = t => decadeYears.some(y => t.releaseYear >= y && t.releaseYear <= y + 9);
-  const pool = allTracks
-    .filter(t => !playedIds.has(t.id) && inDecade(t))
-    .sort((a, b) => (b.popularity + Math.random() * 20) - (a.popularity + Math.random() * 20))
-    .slice(0, 150);
-
-  const dist = {};
-  allTracks.forEach(t => { const d = Math.floor(t.releaseYear/10)*10; dist[d]=(dist[d]||0)+1; });
-  console.log(`[fetchSongs] raw=${allTracks.length} pool=${pool.length} decades:`, selectedDecades, 'dist:', dist);
-
-  if (pool.length < tileCount) {
-    showErr('lobbyErr',
-      `❌ נמצאו רק ${pool.length} שירים — נסה להוסיף עשורים או ז'אנרים נוספים.`);
+  if (top.length < tileCount) {
+    showErr('lobbyErr', `❌ נמצאו רק ${top.length} שירים — נדרשים ${tileCount}. נסה להוסיף ז\'אנרים או עשורים.`);
     return [];
   }
-  return shuffleArr(pool);
+  return shuffleArr(top);
 }
 
-// Search by genre term + year range directly in the query
-async function searchByGenre(term, year, allTracks, seenIds) {
-  try {
-    // Use year filter in the query string — works reliably with plain text terms
-    const q = `${term} year:${year}-${year + 9}`;
-    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=50`;
-    const r = await spotifyFetch(url);
-    if (!r) { console.warn(`[search] no response: "${q}"`); return; }
-    if (!r.ok) {
-      let body = ''; try { body = await r.text(); } catch {}
-      console.warn(`[search] ${r.status} "${q}":`, body.slice(0, 200));
-      return;
-    }
-    const data = await r.json();
-    if (data.error) { console.warn(`[search] error "${q}":`, data.error); return; }
-    const items = data.tracks?.items || [];
-    let added = 0;
-    items.forEach(t => {
-      if (seenIds.has(t.id) || !isValidTrack(t)) return;
-      const ry = parseInt((t.album?.release_date || '0000').slice(0, 4));
-      seenIds.add(t.id);
-      allTracks.push({
-        title: t.name, artist: t.artists.map(a => a.name).join(', '),
-        uri: t.uri, id: t.id, popularity: t.popularity || 0,
-        albumArt: t.album?.images?.[0]?.url || '',
-        releaseYear: ry, durationMs: t.duration_ms || 180000
-      });
-      added++;
-    });
-    console.log(`[search] "${q}" → ${added}/${items.length} added (total ${allTracks.length})`);
-  } catch(e) { console.error(`[search] exception:`, e.message); }
-}
+const CLASSICAL_FILTER = /\b(HWV|BWV|Op\.|KV|Act \d|Scene \d|No\.\s*\d|Symphony|Concerto|Sonata|Quartet|Opus|Oratorio|Cantata|Overture|Fugue|Prelude|Serenade|Handel|Bach|Mozart|Beethoven|Brahms|Vivaldi|Schubert|Chopin|Liszt|Haydn|Telemann|Purcell|Corelli)\b/i;
 
 function isValidTrack(t) {
-  const title  = t.name || '';
+  const title = t.name || '';
   const artist = t.artists?.map(a => a.name).join(', ') || '';
+  if (!t.id || !title) return false;
   if (CLASSICAL_FILTER.test(title) || CLASSICAL_FILTER.test(artist)) return false;
-  if ((t.popularity || 0) < 5) return false;
+  // NOTE: Spotify removed the `popularity` field from track objects (Feb 2026 Web API
+  // changes), so it can no longer be used to filter. The old `popularity < 5` check
+  // rejected every track once the field disappeared, which is why no songs were found.
   return true;
+}
+
+async function searchTracks(q, year, allTracks, ignoreDecade, limit = 10) {
+  try {
+    // market=from_token ensures returned tracks are actually playable for the host,
+    // and improves relevance for the Hebrew/Israeli catalogue. limit max is 10 (Spotify 2026).
+    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&market=from_token&limit=${limit}`;
+    const r = await spotifyFetch(url);
+    if (!r || !r.ok) { console.warn(`searchTracks failed (${r?.status}): ${q}`); return; }
+    const data = await r.json();
+    if (data.error) { console.warn('Spotify error:', q, data.error); return; }
+    const before = allTracks.length;
+    (data.tracks?.items || []).forEach(t => {
+      const ry = parseInt((t.album?.release_date || '0000').slice(0, 4)) || year;
+      // The `year:` filter is already applied inside the search query, so we trust it
+      // instead of re-checking album.release_date — many classic tracks live on later
+      // compilation albums whose release_date would otherwise wrongly exclude them.
+      if (!allTracks.find(x => x.id === t.id) && isValidTrack(t)) {
+        allTracks.push({ title: t.name, artist: t.artists.map(a => a.name).join(', '), uri: t.uri, id: t.id, albumArt: t.album?.images?.[0]?.url || '', releaseYear: ry, durationMs: t.duration_ms || 180000, lang: 'he' });
+      }
+    });
+    console.log(`"${q}" → ${allTracks.length - before} new tracks (total: ${allTracks.length})`);
+  } catch(e) { console.warn('searchTracks exception:', q, e.message); }
 }
 
 // ── Host Game ──────────────────────────────────────────────
@@ -1264,53 +1238,97 @@ function initHostGame() {
   stopClientTimer();
   if (revealTimeout) { clearTimeout(revealTimeout); revealTimeout = null; }
   showScreen('sHostGame');
-  document.getElementById('hostSongCounter').textContent = `שיר ${currentSongIdx + 1} מתוך ${roundCount}`;
-  document.getElementById('hostGenreInfo').textContent   = selectedGenres.join(', ');
-  document.getElementById('hostGameCode').textContent    = `חדר: ${roomCode}`;
+  document.getElementById('hostSongCounter').textContent = `שיר ${currentSongIdx+1} מתוך ${roundCount}`;
+  document.getElementById('hostGenreInfo').textContent = selectedGenres.join(', ');
+  document.getElementById('hostGameCode').textContent = `חדר: ${roomCode}`;
+  document.getElementById('hostPlayBtn').disabled = false;
+  document.getElementById('hostPlayBtn').style.display = 'block';
+  document.getElementById('hostPlayBtn').textContent = '▶ נגן שיר';
   document.getElementById('hostWave').classList.add('off');
-  document.getElementById('hostDecision').style.display  = 'none';
+  document.getElementById('hostDecision').style.display = 'none';
   document.getElementById('hostOpenSpotify').style.display = 'none';
-  setEl('hostPlayBtn', el => {
-    el.disabled = false; el.style.display = 'block'; el.textContent = '▶ נגן שיר';
-  });
-  setPill('hostStatusPill', 'לחץ ▶ נגן להתחלת הסיבוב', 'purple');
-  updateTimer('host', roundDuration, roundDuration);
+  document.getElementById('hostStatusPill').textContent = 'לחץ ▶ נגן להתחלת הסיבוב';
+  document.getElementById('hostStatusPill').className = 'pill purple';
+  updateHostTimer(roundDuration, roundDuration);
+  // Host plays blind — tiles without answer highlight
   renderHostTiles(currentOptions);
+  document.getElementById('hostCorrectAnswer').style.display = 'none';
 }
 
 async function hostPlayClip() {
   const song = currentSongs[currentSongIdx];
   if (!song) return;
-
-  setEl('hostPlayBtn', el => { el.disabled = true; el.textContent = 'מנגן…'; });
+  document.getElementById('hostPlayBtn').disabled = true;
+  document.getElementById('hostPlayBtn').textContent = 'מנגן…';
   document.getElementById('hostWave').classList.remove('off');
 
   const posMs = playPosition === 'middle' ? Math.floor((song.durationMs || 180000) / 2) : 0;
   let res;
   try {
     res = await spotifyPlay(song.uri, posMs);
-  } catch (e) {
+  } catch(e) {
     showToast('שגיאת Spotify: ' + e.message);
-    resetPlayBtn();
+    document.getElementById('hostPlayBtn').disabled = false;
+    document.getElementById('hostPlayBtn').textContent = '▶ נגן שיר';
+    document.getElementById('hostWave').classList.add('off');
     return;
   }
 
-  if (res?.status === 404) {
+  if (res && res.status === 404) {
     document.getElementById('hostOpenSpotify').style.display = 'block';
-    resetPlayBtn(); return;
+    document.getElementById('hostPlayBtn').disabled = false;
+    document.getElementById('hostPlayBtn').textContent = '▶ נגן שיר';
+    document.getElementById('hostWave').classList.add('off');
+    return;
   }
-  if (res?.status === 403) {
+  if (res && res.status === 403) {
     showToast('נדרש Spotify Premium');
-    resetPlayBtn(); return;
+    document.getElementById('hostPlayBtn').disabled = false;
+    document.getElementById('hostPlayBtn').textContent = '▶ נגן שיר';
+    document.getElementById('hostWave').classList.add('off');
+    return;
   }
 
   document.getElementById('hostOpenSpotify').style.display = 'none';
   socket.emit('song_playing');
 }
 
-function resetPlayBtn() {
-  setEl('hostPlayBtn', el => { el.disabled = false; el.textContent = '▶ נגן שיר'; });
-  document.getElementById('hostWave').classList.add('off');
+function openSpotifyLink() {
+  const href = document.getElementById('spotifyLink').dataset.href;
+  if (href) window.open(href, '_blank', 'noopener');
+}
+function hostExtraTime()    { document.getElementById('hostDecision').style.display='none'; socket.emit('extra_time'); }
+function hostForceReveal()  { socket.emit('force_reveal'); }
+function hostNextSong()     { spotifyPause(); socket.emit('next_song'); }
+function hostPlayAgain()    { socket.emit('play_again'); }
+function hostEndGame()      { if (!confirm('לסיים את המשחק?')) return; stopClientTimer(); spotifyPause(); socket.emit('end_game'); }
+
+function updateHostPlayerStatus(players) {
+  const c = document.getElementById('hostPlayerStatus'); if (!c) return; c.innerHTML = '';
+  players.forEach(p => {
+    const chip = document.createElement('div');
+    const col = p.correct === true ? 'var(--green)' : p.correct === false ? 'var(--red)' : 'var(--border)';
+    const pts = p.correct === true ? `+${[10,8,6,4,2,1][Math.min((p.finishPosition||1)-1,5)]}` : '';
+    chip.style.cssText = `display:inline-flex;align-items:center;gap:.25rem;padding:.18rem .45rem;border-radius:999px;border:1px solid ${col};font-size:.68rem`;
+    chip.innerHTML = `<span style="color:var(--text)">${esc(p.name)}</span>${pts?`<span style="color:var(--green);font-size:.65rem">${pts}</span>`:''}`;
+    c.appendChild(chip);
+  });
+}
+
+// ── Player Game ────────────────────────────────────────────
+function initPlayerGame(options) {
+  stopClientTimer();
+  if (revealTimeout) { clearTimeout(revealTimeout); revealTimeout = null; } // cancel any pending reveal
+  showScreen('sPlayerGame');
+  currentOptions = options;
+  myPickIdx = null;
+  document.getElementById('playerSongCounter').textContent = `שיר ${currentSongIdx+1} מתוך ${roundCount}`;
+  document.getElementById('playerWave').classList.add('off');
+  document.getElementById('playerStatusPill').textContent = 'ממתין למארח לנגן…';
+  document.getElementById('playerStatusPill').className = 'pill purple';
+  document.getElementById('playerPickedMsg').style.display = 'none';
+  updatePlayerTimer(roundDuration, roundDuration);
+  renderTiles(options, false);
 }
 
 function setPlayPosition(pos) {
@@ -1319,133 +1337,93 @@ function setPlayPosition(pos) {
   document.getElementById('posMidBtn').classList.toggle('active-pos', pos === 'middle');
 }
 
-// Host tiles are interactive for visual selection but do NOT emit submit_pick.
-// The server must ignore any picks from the host socket to avoid affecting scoring.
 function renderHostTiles(options) {
   const grid = document.getElementById('hostTileGrid');
   if (!grid) return;
-  grid.style.gridTemplateColumns = `repeat(${options.length <= 8 ? 2 : 3}, 1fr)`;
+  // Set columns based on tile count
+  const cols = options.length <= 8 ? 2 : 3;
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
   grid.innerHTML = '';
   options.forEach((opt, i) => {
     const tile = document.createElement('div');
-    tile.className   = 'tile disabled'; // starts disabled; enabled when song plays
+    // Host plays blind — no correct answer shown
+    tile.className = 'tile';
     tile.dataset.idx = i;
-    tile.innerHTML   = `<div class="tile-title">${esc(opt.title)}</div><div class="tile-artist">${esc(opt.artist)}</div>`;
-    tile.onclick     = () => onHostTilePick(i);
+    tile.innerHTML = `<div class="tile-title">${esc(opt.title)}</div><div class="tile-artist">${esc(opt.artist)}</div>`;
+    tile.onclick = () => onHostTilePick(i);
     grid.appendChild(tile);
   });
 }
 
-function enableHostTiles() {
-  document.querySelectorAll('#hostTileGrid .tile').forEach(t => t.classList.remove('disabled'));
-}
-function disableHostTiles() {
-  document.querySelectorAll('#hostTileGrid .tile').forEach(t => t.classList.add('disabled'));
-}
-
-// Host picks count like any player — emit submit_pick to server
-function onHostTilePick(idx) {
-  if (myPickIdx === idx) return;
-  myPickIdx = idx;
-  document.querySelectorAll('#hostTileGrid .tile').forEach((t, i) => t.classList.toggle('selected', i === idx));
-  socket.emit('submit_pick', { optionIdx: idx });
-}
-
-function updateHostPlayerStatus(players) {
-  const c = document.getElementById('hostPlayerStatus');
-  if (!c) return;
-  c.innerHTML = '';
-  players.forEach(p => {
-    const chip = document.createElement('div');
-    const col  = p.correct === true ? 'var(--green)' : p.correct === false ? 'var(--red)' : 'var(--border)';
-    const pts  = p.correct === true
-      ? `+${SCORE_TABLE[Math.min((p.finishPosition || 1) - 1, SCORE_TABLE.length - 1)]}`
-      : '';
-    chip.style.cssText = `display:inline-flex;align-items:center;gap:.25rem;padding:.18rem .45rem;border-radius:999px;border:1px solid ${col};font-size:.68rem`;
-    chip.innerHTML = `<span style="color:var(--text)">${esc(p.name)}</span>${pts ? `<span style="color:var(--green);font-size:.65rem">${pts}</span>` : ''}`;
-    c.appendChild(chip);
-  });
-}
-
-function hostExtraTime()   { document.getElementById('hostDecision').style.display = 'none'; socket.emit('extra_time'); }
-function hostForceReveal() { socket.emit('force_reveal'); }
-function hostNextSong()    { spotifyPause(); socket.emit('next_song'); }
-function hostPlayAgain()   { socket.emit('play_again'); }
-function hostEndGame()     {
-  if (!confirm('לסיים את המשחק?')) return;
-  stopClientTimer(); spotifyPause(); socket.emit('end_game');
-}
-
-// ── Player Game ────────────────────────────────────────────
-function initPlayerGame(options) {
-  stopClientTimer();
-  if (revealTimeout) { clearTimeout(revealTimeout); revealTimeout = null; }
-  showScreen('sPlayerGame');
-  currentOptions = options;
-  myPickIdx = null;
-  document.getElementById('playerSongCounter').textContent = `שיר ${currentSongIdx + 1} מתוך ${roundCount}`;
-  document.getElementById('playerWave').classList.add('off');
-  document.getElementById('playerPickedMsg').style.display = 'none';
-  setPill('playerStatusPill', 'ממתין למארח לנגן…', 'purple');
-  updateTimer('player', roundDuration, roundDuration);
-  renderPlayerTiles(options);
-}
-
-// FIX: renamed from renderTiles; removed unused `enabled` param; tiles always start disabled
-function renderPlayerTiles(options) {
-  const grid = document.getElementById('playerTileGrid');
-  grid.innerHTML = '';
-  grid.style.gridTemplateColumns = `repeat(${options.length <= 8 ? 2 : 3}, 1fr)`;
+function renderTiles(options, enabled) {
+  const grid = document.getElementById('playerTileGrid'); grid.innerHTML = '';
+  const cols = options.length <= 8 ? 2 : 3;
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
   options.forEach((opt, i) => {
     const tile = document.createElement('div');
-    tile.className   = 'tile disabled';
+    tile.className = 'tile disabled';
     tile.dataset.idx = i;
-    tile.innerHTML   = `<div class="tile-title">${esc(opt.title)}</div><div class="tile-artist">${esc(opt.artist)}</div>`;
-    tile.onclick     = () => onTilePick(i);
+    tile.innerHTML = `<div class="tile-title">${esc(opt.title)}</div><div class="tile-artist">${esc(opt.artist)}</div>`;
+    tile.onclick = () => onTilePick(i);
     grid.appendChild(tile);
   });
 }
 
-function enableTiles()  { document.querySelectorAll('#playerTileGrid .tile').forEach(t => t.classList.remove('disabled')); }
-function disableTiles() { document.querySelectorAll('#playerTileGrid .tile').forEach(t => t.classList.add('disabled')); }
+function enableTiles() {
+  document.querySelectorAll('#playerTileGrid .tile').forEach(t => t.classList.remove('disabled'));
+}
+function disableTiles() {
+  document.querySelectorAll('#playerTileGrid .tile').forEach(t => t.classList.add('disabled'));
+}
 function resetTileSelection() {
   document.querySelectorAll('#playerTileGrid .tile').forEach(t => t.classList.remove('selected','correct','wrong'));
 }
 
-function onTilePick(idx) {
-  if (myPickIdx === idx) return; // already selected
+function onHostTilePick(idx) {
+  if (myPickIdx === idx) return;
   myPickIdx = idx;
-  document.querySelectorAll('#playerTileGrid .tile').forEach((t, i) => t.classList.toggle('selected', i === idx));
+  document.querySelectorAll('#hostTileGrid .tile').forEach((t, i) => {
+    t.classList.toggle('selected', i === idx);
+  });
   socket.emit('submit_pick', { optionIdx: idx });
+}
+
+function onTilePick(idx) {
+  if (myPickIdx === idx) return; // already selected this one
+  myPickIdx = idx;
+  // Visual: deselect all, select picked
+  document.querySelectorAll('#playerTileGrid .tile').forEach((t,i) => {
+    t.classList.toggle('selected', i === idx);
+  });
+  // Send to server (overwrite previous pick)
+  socket.emit('submit_pick', { optionIdx: idx });
+  // Show confirmation
   const opt = currentOptions[idx];
   document.getElementById('playerPickedName').textContent = `${opt.title} — ${opt.artist}`;
   document.getElementById('playerPickedMsg').style.display = 'block';
 }
 
 function highlightTiles(correctIdx) {
-  // Works for both host tile grid (view-only) and player tile grid
   const sel = isHost ? '#hostTileGrid .tile' : '#playerTileGrid .tile';
   document.querySelectorAll(sel).forEach((t, i) => {
     t.classList.remove('selected');
     t.classList.add('disabled');
-    if (i === correctIdx) t.classList.add('correct');
-    else if (i === myPickIdx && myPickIdx !== correctIdx) t.classList.add('wrong');
+    if (i === correctIdx) { t.classList.add('correct'); }
+    else if (i === myPickIdx && myPickIdx !== correctIdx) { t.classList.add('wrong'); }
   });
 }
 
 function updatePlayerStatusList(players) {
-  const c = document.getElementById('playerStatusList');
-  if (!c) return;
-  c.innerHTML = '';
+  const c = document.getElementById('playerStatusList'); if (!c) return; c.innerHTML = '';
   players.filter(p => !p.isHost).forEach(p => {
     const chip = document.createElement('div');
-    const col  = p.correct === true ? 'var(--green)' : p.correct === false ? 'var(--red)' : 'var(--border)';
-    chip.style.cssText = `display:inline-flex;align-items:center;gap:.25rem;padding:.18rem .45rem;border-radius:999px;border:1px solid ${col};font-size:.68rem`;
-    chip.innerHTML = `<span style="color:var(--text)">${esc(p.name)}</span><span style="color:var(--accent3);font-size:.65rem">${p.score || 0}pt</span>`;
+    const col = p.correct === true ? 'var(--green)' : p.correct === false ? 'var(--red)' : 'var(--border)';
+    chip.style.cssText = `display:inline-flex;align-items:center;gap:.25rem;padding:.18rem .45rem;border-radius:999px;border:1px solid ${col};font-size:.68rem;background:transparent`;
+    chip.innerHTML = `<span style="color:var(--text)">${esc(p.name)}</span><span style="color:var(--accent3);font-size:.65rem">${p.score||0}pt</span>`;
     c.appendChild(chip);
   });
   const me = players.find(p => p.id === myId);
-  if (me) document.getElementById('myScore').textContent = (me.score || 0) + ' נקודות';
+  if (me) document.getElementById('myScore').textContent = (me.score||0)+' נקודות';
 }
 
 // ── Timer ──────────────────────────────────────────────────
@@ -1454,98 +1432,87 @@ function startClientTimer(duration, endTime) {
   let fired = false;
   const tick = () => {
     const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
-    updateTimer('host',   remaining, duration);
-    updateTimer('player', remaining, duration);
+    updateHostTimer(remaining, duration);
+    updatePlayerTimer(remaining, duration);
     if (remaining <= 0 && !fired) {
       fired = true;
       stopClientTimer();
       if (isHost) {
-        spotifyPause();
+        spotifyPause(); // stop the music when time is up
         document.getElementById('hostWave').classList.add('off');
-        setPill('hostStatusPill', '⏱ הזמן נגמר!', 'amber');
+        document.getElementById('hostStatusPill').textContent = "⏱ הזמן נגמר!";
+        document.getElementById('hostStatusPill').className = 'pill amber';
       } else {
         disableTiles();
         document.getElementById('playerWave').classList.add('off');
-        setPill('playerStatusPill', '⏱ הזמן נגמר — ממתין לתוצאה…', 'amber');
+        document.getElementById('playerStatusPill').textContent = "⏱ הזמן נגמר — ממתין לתוצאה…";
+        document.getElementById('playerStatusPill').className = 'pill amber';
       }
     }
   };
   tick();
   timerInterval = setInterval(tick, 100);
 }
-function stopClientTimer() {
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-}
+function stopClientTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
 
-// FIX: ring math corrected — full ring when val=max, empty when val=0
-function updateTimer(who, val, max) {
-  const ring = document.getElementById(who + 'TimerRing');
-  const num  = document.getElementById(who + 'TimerNum');
-  if (!ring) return;
+function updateHostTimer(val, max) {
+  const el = document.getElementById('hostTimerRing'); if (!el) return;
   const circumference = 163;
-  ring.style.strokeDashoffset = (1 - val / max) * circumference;
-  ring.style.stroke = val <= 5 ? 'var(--red)' : val <= 10 ? 'var(--gold)' : 'var(--accent2)';
-  if (num) num.textContent = val;
+  el.style.strokeDashoffset = (val/max) * circumference;
+  el.style.stroke = val<=5?'var(--red)':val<=10?'var(--gold)':'var(--accent2)';
+  document.getElementById('hostTimerNum').textContent = val;
+}
+function updatePlayerTimer(val, max) {
+  const el = document.getElementById('playerTimerRing'); if (!el) return;
+  const circumference = 163;
+  el.style.strokeDashoffset = (val/max) * circumference;
+  el.style.stroke = val<=5?'var(--red)':val<=10?'var(--gold)':'var(--accent2)';
+  document.getElementById('playerTimerNum').textContent = val;
 }
 
 // ── Reveal ─────────────────────────────────────────────────
 function showReveal(song, players, isLast) {
   showScreen('sReveal');
-  const winners  = players.filter(p => p.correct === true).sort((a, b) => a.finishPosition - b.finishPosition);
-  document.getElementById('revealHead').textContent   = winners.length ? `🎉 ${winners.map(p => p.name).join(', ')} ניחשו!` : 'אף אחד לא ניחש!';
-  document.getElementById('revealSub').textContent    = song.releaseYear ? String(song.releaseYear) : '';
+  const winners  = players.filter(p => p.correct === true).sort((a,b)=>a.finishPosition-b.finishPosition);
+  const headText = winners.length ? `🎉 ${winners.map(p=>p.name).join(', ')} got it!` : 'אף אחד לא ניחש!';
+  document.getElementById('revealHead').textContent = headText;
+  document.getElementById('revealSub').textContent  = song.releaseYear ? `${song.releaseYear}` : '';
   document.getElementById('revealSong').textContent   = song.title;
   document.getElementById('revealArtist').textContent = song.artist;
   document.getElementById('spotifyLink').dataset.href = `https://open.spotify.com/track/${song.id}`;
+  if (song.albumArt) { document.getElementById('revealImg').src = song.albumArt; document.getElementById('revealArt').style.display='block'; }
+  else document.getElementById('revealArt').style.display='none';
 
-  if (song.albumArt) {
-    document.getElementById('revealImg').src = song.albumArt;
-    document.getElementById('revealArt').style.display = 'block';
-  } else {
-    document.getElementById('revealArt').style.display = 'none';
-  }
-
-  const sc = document.getElementById('revealScores');
-  sc.innerHTML = '';
-  [...players].sort((a, b) => (b.score || 0) - (a.score || 0)).forEach((p, i) => {
-    const r = document.createElement('div');
-    r.className = 'player-row';
-    if (i === 0) r.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:.45rem .7rem;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);border-radius:var(--rad-sm);margin-bottom:.25rem';
-    const badge = p.correct === true
-      ? ` <span style="color:var(--green);font-size:.7rem">✓ #${p.finishPosition}</span>`
-      : p.correct === false
-        ? ` <span style="color:var(--red);font-size:.7rem">✗</span>`
-        : '';
-    r.innerHTML = `<span class="name">${MEDALS[i] || ''}${esc(p.name)}${badge}</span><span class="pts">${p.score || 0} pts</span>`;
+  const sorted = [...players].sort((a,b)=>(b.score||0)-(a.score||0));
+  const sc = document.getElementById('revealScores'); sc.innerHTML = '';
+  sorted.forEach((p,i) => {
+    const r = document.createElement('div'); r.className = 'player-row';
+    if (i===0) r.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:.45rem .7rem;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);border-radius:var(--rad-sm);margin-bottom:.25rem';
+    const badge = p.correct===true ? ` <span style="color:var(--green);font-size:.7rem">✓ #${p.finishPosition}</span>` : p.correct===false ? ` <span style="color:var(--red);font-size:.7rem">✗</span>` : '';
+    r.innerHTML = `<span class="name">${MEDALS[i]||''}${esc(p.name)}${badge}</span><span class="pts">${p.score||0} pts</span>`;
     sc.appendChild(r);
   });
 
   if (winners.length) launchConfetti();
-  document.getElementById('revealHostBtn').style.display    = isHost ? 'block' : 'none';
+  document.getElementById('revealHostBtn').style.display   = isHost ? 'block' : 'none';
   document.getElementById('revealPlayerWait').style.display = isHost ? 'none'  : 'block';
   if (isHost) document.getElementById('nextSongBtn').textContent = isLast ? 'ראה תוצאות סופיות ▶' : 'שיר הבא ▶';
-}
-function openSpotifyLink() {
-  const href = document.getElementById('spotifyLink').dataset.href;
-  if (href) window.open(href, '_blank', 'noopener');
 }
 
 // ── Game Over ──────────────────────────────────────────────
 function showGameOver(players) {
   showScreen('sGameOver');
-  const sorted = [...players].sort((a, b) => (b.score || 0) - (a.score || 0));
+  const sorted = [...players].sort((a,b)=>(b.score||0)-(a.score||0));
   document.getElementById('winnerName').textContent = sorted[0]?.name || '—';
-  const fc = document.getElementById('finalScores');
-  fc.innerHTML = '';
-  sorted.forEach((p, i) => {
-    const r = document.createElement('div');
-    r.className = 'player-row';
-    if (i === 0) r.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:.45rem .7rem;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);border-radius:var(--rad-sm);margin-bottom:.25rem';
-    r.innerHTML = `<span class="name">${MEDALS[i] || ''}${esc(p.name)}</span><span class="pts">${p.score || 0} pts</span>`;
+  const fc = document.getElementById('finalScores'); fc.innerHTML = '';
+  sorted.forEach((p,i) => {
+    const r = document.createElement('div'); r.className = 'player-row';
+    if (i===0) r.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:.45rem .7rem;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);border-radius:var(--rad-sm);margin-bottom:.25rem';
+    r.innerHTML = `<span class="name">${MEDALS[i]||''}${esc(p.name)}</span><span class="pts">${p.score||0} pts</span>`;
     fc.appendChild(r);
   });
-  document.getElementById('gameOverHostBtns').style.display  = isHost ? 'block' : 'none';
-  document.getElementById('gameOverPlayerMsg').style.display = isHost ? 'none'  : 'block';
+  document.getElementById('gameOverHostBtns').style.display   = isHost ? 'block' : 'none';
+  document.getElementById('gameOverPlayerMsg').style.display  = isHost ? 'none'  : 'block';
   launchConfetti();
 }
 
@@ -1553,8 +1520,7 @@ function showGameOver(players) {
 function launchConfetti() {
   const colors = ['#7c3aed','#a855f7','#c084fc','#f59e0b','#22c55e','#ffffff'];
   for (let i = 0; i < 45; i++) {
-    const el = document.createElement('div');
-    el.className = 'confetti-piece';
+    const el = document.createElement('div'); el.className = 'confetti-piece';
     el.style.cssText = `left:${Math.random()*100}vw;top:0;background:${colors[Math.floor(Math.random()*colors.length)]};animation-delay:${Math.random()*.7}s;animation-duration:${.9+Math.random()*.9}s;transform:rotate(${Math.random()*360}deg)`;
     document.body.appendChild(el);
     el.addEventListener('animationend', () => el.remove());
@@ -1567,96 +1533,62 @@ function esc(s) {
 }
 function shuffleArr(arr) {
   const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
+  for (let i = a.length-1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
   return a;
 }
 function copyCode() {
   const code = document.getElementById('lobbyCode').textContent;
-  if (!code || code === '----') return;
-  navigator.clipboard?.writeText(code)
-    .then(() => showToast('הקוד הועתק: ' + code))
-    .catch(() => showToast('קוד החדר: ' + code));
+  if (!code || code==='----') return;
+  navigator.clipboard?.writeText(code).then(()=>showToast('הקוד הועתק: '+code)).catch(()=>showToast('קוד החדר: '+code));
 }
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  // FIX: always rebuild lobby so selections are fresh (not cached from prior game)
-  if (id === 'sLobby' && !lobbyBuilt) { buildLobby(); lobbyBuilt = true; }
+  if (id==='sLobby' && !window._lobbyBuilt) { buildLobby(); window._lobbyBuilt=true; }
 }
-function showErr(id, msg) {
-  const e = document.getElementById(id);
-  if (!e) return;
-  e.textContent = msg;
-  setTimeout(() => { if (e.textContent === msg) e.textContent = ''; }, 10000);
-}
-function showLoading(msg) {
-  document.getElementById('loadingMsg').textContent = msg;
-  document.getElementById('loadingOverlay').classList.add('show');
-}
-function hideLoading() { document.getElementById('loadingOverlay').classList.remove('show'); }
-let toastTimer = null;
+function showErr(id,msg) { const e=document.getElementById(id); if(!e)return; e.textContent=msg; setTimeout(()=>e.textContent='',10000); }
+function showLoading(msg) { document.getElementById('loadingMsg').textContent=msg; document.getElementById('loadingOverlay').classList.add('show'); }
+function hideLoading()    { document.getElementById('loadingOverlay').classList.remove('show'); }
+let toastTimer=null;
 function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  if(toastTimer)clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2500);
 }
-function setPill(id, text, color) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.textContent = text;
-  el.className   = 'pill ' + color;
-}
-function setEl(id, fn) {
-  const el = document.getElementById(id);
-  if (el) fn(el);
-}
+window._lobbyBuilt = false;
 
 // ── Boot ───────────────────────────────────────────────────
 (async function boot() {
   const params = new URLSearchParams(window.location.search);
-  const code   = params.get('code');
-  window.history.replaceState({}, '', '/');
-
+  const code = params.get('code');
+  window.history.replaceState({},'','/');
   if (code) {
     showLoading('מתחבר לספוטיפיי…');
     try {
       const data = await exchangeCode(code);
       accessToken = data.access_token;
+      refreshToken = data.refresh_token || '';
       sessionStorage.setItem('at', accessToken);
-      if (data.refresh_token) sessionStorage.setItem('rt', data.refresh_token);
-      scheduleRefresh(data.expires_in || 3600);
+      if (refreshToken) sessionStorage.setItem('rt', refreshToken);
+      setTimeout(refreshAccessToken, (data.expires_in-60)*1000);
       const pendingName = sessionStorage.getItem('pendingName');
-      if (pendingName) {
-        myName = pendingName;
-        document.getElementById('nameInput').value = myName;
-        sessionStorage.removeItem('pendingName');
-      }
+      if (pendingName) { myName=pendingName; document.getElementById('nameInput').value=myName; sessionStorage.removeItem('pendingName'); }
       document.getElementById('spotifyStatus').textContent = '✓ ספוטיפיי מחובר';
-    } catch (e) {
-      showErr('spotifyErr', 'התחברות נכשלה: ' + e.message);
-    }
+    } catch(e) { showErr('spotifyErr','התחברות נכשלה: '+e.message); }
     hideLoading(); showScreen('sHome'); return;
   }
-
   const at = sessionStorage.getItem('at');
-  if (at) {
-    accessToken = at;
-    document.getElementById('spotifyStatus').textContent = '✓ Spotify connected';
-  }
+  if (at) { accessToken=at; refreshToken=sessionStorage.getItem('rt')||''; document.getElementById('spotifyStatus').textContent='✓ Spotify connected'; }
   showScreen('sHome');
 })();
 
-// ── Keyboard shortcuts ─────────────────────────────────────
-document.getElementById('codeInput').addEventListener('keydown', e => { if (e.key === 'Enter') joinRoom(); });
-document.getElementById('joinNameInput').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('codeInput').focus(); });
-
-window.addEventListener('popstate', () => {
+// ── Enter key shortcuts ────────────────────────────────────
+document.getElementById('codeInput').addEventListener('keydown', e => { if(e.key==='Enter') joinRoom(); });
+window.addEventListener('popstate', (e) => {
+  // Only disconnect on real navigation (not # anchor clicks or Spotify return)
+  // Check if we're still on the same page
   if (window.location.pathname === '/' && !window.location.search) {
-    if (socket) { socket.disconnect(); socket = null; }
+    if(socket){socket.disconnect();socket=null;}
     stopClientTimer();
     showScreen('sHome');
   }
