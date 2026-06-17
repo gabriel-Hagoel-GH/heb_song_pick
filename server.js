@@ -28,7 +28,7 @@ app.get('/api/search', async (req, res) => {
   const room = rooms[roomCode.toUpperCase()];
   if (!room || !room.spotifyToken) return res.json({ items: [] });
   try {
-    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=${type}&limit=6`;
+    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=${type}&market=from_token&limit=6`;
     const r = await fetch(url, { headers: { Authorization: 'Bearer ' + room.spotifyToken } });
     if (!r.ok) return res.json({ items: [] });
     const data = await r.json();
