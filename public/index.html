@@ -1125,9 +1125,8 @@ async function hostStartGame() {
   const btn = document.getElementById('startGameBtn');
   const errEl = document.getElementById('lobbyErr');
 
-  // Step 1: validate selections
+  // Step 1: validate selections — decade is optional (no decade = no year filtering)
   if (!selectedGenres.length) { showErr('lobbyErr','בחר לפחות ז\'אנר אחד'); return; }
-  if (!selectedDecades.length) { showErr('lobbyErr','בחר לפחות עשור אחד'); return; }
 
   // Step 2: check token
   const tok = sessionStorage.getItem('at');
@@ -1151,7 +1150,7 @@ async function hostStartGame() {
   btn.disabled = false; btn.textContent = 'התחל משחק ▶';
 
   if (!songs || songs.length === 0) {
-    showErr('lobbyErr', `❌ לא נמצאו שירים. ז\'אנרים: [${selectedGenres.join(',')}] עשורים: [${selectedDecades.join(',')}]`);
+    showErr('lobbyErr', `❌ לא נמצאו שירים. ז\'אנרים: [${selectedGenres.join(',')}] עשורים: [${selectedDecades.length ? selectedDecades.join(',') : 'הכל'}]`);
     return;
   }
 
@@ -1170,14 +1169,20 @@ async function fetchSongs() {
   const allTracks = [];
   const promises = [];
 
-  for (const decade of selectedDecades) {
-    const year = parseInt(decade);
-    for (const genre of selectedGenres) {
-      const queries = GENRE_QUERIES[genre] || [genre];
-      queries.forEach(q => {
-        promises.push(searchTracks(`${q} year:${year}-${year+9}`, year, allTracks, false));
-        promises.push(searchTracks(`${q} year:${year}-${year+4}`, year, allTracks, false));
-      });
+  // When no decade is selected we search each genre query once with NO year filter at all.
+  // When decades are selected we constrain each query to that decade (two windows each).
+  for (const genre of selectedGenres) {
+    const queries = GENRE_QUERIES[genre] || [genre];
+    if (selectedDecades.length) {
+      for (const decade of selectedDecades) {
+        const year = parseInt(decade);
+        queries.forEach(q => {
+          promises.push(searchTracks(`${q} year:${year}-${year+9}`, year, allTracks, false));
+          promises.push(searchTracks(`${q} year:${year}-${year+4}`, year, allTracks, false));
+        });
+      }
+    } else {
+      queries.forEach(q => promises.push(searchTracks(q, null, allTracks, true)));
     }
   }
   await Promise.all(promises);
@@ -1223,7 +1228,7 @@ async function searchTracks(q, year, allTracks, ignoreDecade, limit = 10) {
     if (data.error) { console.warn('Spotify error:', q, data.error); return; }
     const before = allTracks.length;
     (data.tracks?.items || []).forEach(t => {
-      const ry = parseInt((t.album?.release_date || '0000').slice(0, 4)) || year;
+      const ry = parseInt((t.album?.release_date || '0000').slice(0, 4)) || year || 2000;
       // The `year:` filter is already applied inside the search query, so we trust it
       // instead of re-checking album.release_date — many classic tracks live on later
       // compilation albums whose release_date would otherwise wrongly exclude them.
