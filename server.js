@@ -43,7 +43,7 @@ app.get('/api/search', async (req, res) => {
 const POSITION_POINTS = [10, 8, 6, 4, 2]; // position 6+ all get 1
 const EXTRA_DURATION  = 10;
 const DEFAULT_DURATION = 20;
-const DEFAULT_TILES    = 12;
+const DEFAULT_TILES    = 6;
 
 function getPoints(pos) {
   if (pos < 1) return 0;
