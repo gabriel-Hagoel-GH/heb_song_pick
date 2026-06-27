@@ -21,6 +21,67 @@ if (!fs.existsSync(INDEX)) {
 app.use(express.static(ROOT));
 app.use(express.json());
 
+// ── Genre playlist storage (managed via /admin.html) ───────
+const GENRES_FILE = path.join(__dirname, 'genres.json');
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'change-me';
+
+const DEFAULT_GENRES = {
+  'פופ ישראלי':   ['פופ ישראלי','פופ ישראלי: הלהיטים','פופ ישראלי ישן','פופ ישראלי חדש','הלהיטים הגדולים של ישראל'],
+  'רוק ישראלי':   ['קלאסיקות רוק ישראלי','רוק ישראלי מקפיץ','רוק ישראלי ישן וטוב','מסיבת רוק ישראלית','רוק ישראלי מאז ועד היום'],
+  'מזרחי':        ['ים תיכוני: הלהיטים','מזרחית ישנה','מזרחית ישנה וטובה','מזרחית ליום שישי','מסיבה מזרחית'],
+  'פסטיגלים':     ['פסטיגלים מכל הזמנים','שירי פסטיגל אהובים ביותר','שירי פסטיגלים מכל הזמנים','פלייליסט פסטיגלים','שירי פסטיגל - מכל הזמנים'],
+  'שירים מסרטים': ['שירים מסרטים ישראלים','פסקול ישראלי - שירים מסרטים ישראלים','רק השירים הישראלים הכי יפים אי פעם'],
+};
+
+function loadGenresFile() {
+  try {
+    if (fs.existsSync(GENRES_FILE)) {
+      const parsed = JSON.parse(fs.readFileSync(GENRES_FILE, 'utf8'));
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && Object.keys(parsed).length) return parsed;
+    }
+  } catch (e) { console.warn('Could not read genres.json:', e.message); }
+  try { fs.writeFileSync(GENRES_FILE, JSON.stringify(DEFAULT_GENRES, null, 2)); } catch {}
+  return { ...DEFAULT_GENRES };
+}
+
+function validateGenres(obj) {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return 'מבנה לא תקין';
+  const keys = Object.keys(obj);
+  if (!keys.length) return 'צריך לפחות ז\'אנר אחד';
+  for (const k of keys) {
+    if (!k.trim()) return 'שם ז\'אנר לא יכול להיות ריק';
+    if (!Array.isArray(obj[k]) || obj[k].length === 0) return `הז\'אנר "${k}" צריך לפחות שאילתה אחת`;
+    if (obj[k].some(q => typeof q !== 'string' || !q.trim())) return `הז\'אנר "${k}" מכיל שאילתה ריקה`;
+  }
+  return null;
+}
+
+let genreData = loadGenresFile();
+
+// Public: the game reads the current genre→queries map from here.
+app.get('/api/genres', (req, res) => res.json(genreData));
+
+// Protected: the admin page saves an updated map here.
+app.post('/api/admin/genres', (req, res) => {
+  if ((req.headers['x-admin-password'] || '') !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: 'סיסמת מנהל שגויה' });
+  }
+  const err = validateGenres(req.body);
+  if (err) return res.status(400).json({ error: err });
+  const clean = {};
+  for (const [k, v] of Object.entries(req.body)) clean[k.trim()] = v.map(q => q.trim()).filter(Boolean);
+  genreData = clean;
+  try { fs.writeFileSync(GENRES_FILE, JSON.stringify(genreData, null, 2)); }
+  catch (e) { return res.status(500).json({ error: 'שמירה לדיסק נכשלה: ' + e.message }); }
+  console.log('✓ Genres updated via admin (' + Object.keys(genreData).length + ' genres)');
+  res.json({ ok: true, genres: genreData });
+});
+
+// Lets the admin page verify the password without saving.
+app.post('/api/admin/check', (req, res) => {
+  res.json({ ok: (req.headers['x-admin-password'] || '') === ADMIN_PASSWORD });
+});
+
 // ── Spotify search proxy ───────────────────────────────────
 app.get('/api/search', async (req, res) => {
   const { q, type, roomCode } = req.query;
