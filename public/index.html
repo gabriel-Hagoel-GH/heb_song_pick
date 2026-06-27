@@ -659,17 +659,39 @@ const CLIENT_ID   = '343ddfcdf3ef445697e55ff537a2c18a';
 const REDIRECT_URI = window.location.origin + '/';
 const SCOPES = 'user-read-email user-read-private user-modify-playback-state user-read-playback-state';
 
-const GENRES = ['פופ ישראלי','רוק ישראלי','מזרחי','פסטיגלים','שירים מסרטים'];
+// These are FALLBACK defaults. On load they are replaced by whatever is stored on the
+// server (editable via /admin.html). See loadGenresFromServer() below.
+let GENRES = ['פופ ישראלי','רוק ישראלי','מזרחי','פסטיגלים','שירים מסרטים'];
 
 // Hebrew search queries per genre. The search runs against track names/artists/albums,
 // so phrasing these the way Israeli playlists/tracks are titled surfaces relevant songs.
-const GENRE_QUERIES = {
+let GENRE_QUERIES = {
   'פופ ישראלי':   ['פופ ישראלי','פופ ישראלי: הלהיטים','פופ ישראלי ישן','פופ ישראלי חדש','הלהיטים הגדולים של ישראל'],
   'רוק ישראלי':   ['קלאסיקות רוק ישראלי','רוק ישראלי מקפיץ','רוק ישראלי ישן וטוב','מסיבת רוק ישראלית','רוק ישראלי מאז ועד היום'],
   'מזרחי':        ['ים תיכוני: הלהיטים','מזרחית ישנה','מזרחית ישנה וטובה','מזרחית ליום שישי','מסיבה מזרחית'],
   'פסטיגלים':     ['פסטיגלים מכל הזמנים','שירי פסטיגל אהובים ביותר','שירי פסטיגלים מכל הזמנים','פלייליסט פסטיגלים','שירי פסטיגל - מכל הזמנים'],
   'שירים מסרטים': ['שירים מסרטים ישראלים','פסקול ישראלי - שירים מסרטים ישראלים','רק השירים הישראלים הכי יפים אי פעם'],
 };
+
+// Load the genre→queries map from the server (managed via the admin page). Falls back
+// to the hardcoded defaults above if the request fails (e.g. older server build).
+async function loadGenresFromServer() {
+  try {
+    const r = await fetch('/api/genres');
+    if (!r.ok) return;
+    const data = await r.json();
+    if (data && typeof data === 'object' && Object.keys(data).length) {
+      GENRE_QUERIES = data;
+      GENRES = Object.keys(data);
+      // If the lobby is already on screen, rebuild it so the new genres show up.
+      if (window._lobbyBuilt && typeof buildLobby === 'function') {
+        const prev = [...selectedGenres];
+        buildLobby();
+        selectedGenres = prev.filter(g => GENRES.includes(g));
+      }
+    }
+  } catch (e) { console.warn('loadGenresFromServer failed, using defaults:', e.message); }
+}
 const DECADES = ['1960s','1970s','1980s','1990s','2000s','2010s','2020s'];
 const MEDALS  = ['🥇','🥈','🥉'];
 const ROUND_DURATION = 20;
@@ -788,6 +810,7 @@ async function refreshAccessToken() {
     if (data.access_token) {
       accessToken = data.access_token;
       sessionStorage.setItem('at', accessToken);
+      localStorage.setItem('at', accessToken); // keep admin preview token fresh
       if (data.refresh_token) sessionStorage.setItem('rt', data.refresh_token);
       setTimeout(refreshAccessToken, (data.expires_in - 60) * 1000);
       if (socket && socket.connected && roomCode) socket.emit('host_token', { token: accessToken });
@@ -1566,6 +1589,7 @@ window._lobbyBuilt = false;
 
 // ── Boot ───────────────────────────────────────────────────
 (async function boot() {
+  loadGenresFromServer(); // fetch latest genre playlists from the server (non-blocking)
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
   window.history.replaceState({},'','/');
@@ -1576,6 +1600,7 @@ window._lobbyBuilt = false;
       accessToken = data.access_token;
       refreshToken = data.refresh_token || '';
       sessionStorage.setItem('at', accessToken);
+      localStorage.setItem('at', accessToken); // mirror so /admin.html can preview queries
       if (refreshToken) sessionStorage.setItem('rt', refreshToken);
       setTimeout(refreshAccessToken, (data.expires_in-60)*1000);
       const pendingName = sessionStorage.getItem('pendingName');
@@ -1585,7 +1610,7 @@ window._lobbyBuilt = false;
     hideLoading(); showScreen('sHome'); return;
   }
   const at = sessionStorage.getItem('at');
-  if (at) { accessToken=at; refreshToken=sessionStorage.getItem('rt')||''; document.getElementById('spotifyStatus').textContent='✓ Spotify connected'; }
+  if (at) { accessToken=at; refreshToken=sessionStorage.getItem('rt')||''; localStorage.setItem('at', at); document.getElementById('spotifyStatus').textContent='✓ Spotify connected'; }
   showScreen('sHome');
 })();
 

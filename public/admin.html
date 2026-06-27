@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ניהול פלייליסטים — שיר בריבוע</title>
+<style>
+  :root{
+    --bg:#0a0a0f; --panel:#15151f; --panel2:#1d1d2b; --line:#2a2a3c;
+    --txt:#e8e8f0; --muted:#9a9ab2; --accent:#7c3aed; --accent2:#a78bfa;
+    --ok:#34d399; --warn:#fbbf24; --danger:#f87171; --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#1a1030 0%,var(--bg) 60%);
+       color:var(--txt);font-family:system-ui,"Segoe UI",Arial,sans-serif;min-height:100vh;
+       padding:22px clamp(12px,4vw,40px) 60px}
+  h1{font-size:1.5rem;margin:0 0 2px}
+  .sub{color:var(--muted);font-size:.9rem;margin-bottom:18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+  .btn{cursor:pointer;border:none;border-radius:10px;padding:.55rem .9rem;font-size:.9rem;font-weight:600;
+       color:#fff;background:var(--accent);transition:.15s;font-family:inherit}
+  .btn:hover{filter:brightness(1.12)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.sec{background:var(--panel2);border:1px solid var(--line);color:var(--txt)}
+  .btn.ok{background:var(--ok);color:#062b1c}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--muted)}
+  .btn.sm{padding:.35rem .6rem;font-size:.8rem}
+  .icon-btn{cursor:pointer;background:transparent;border:none;color:var(--muted);font-size:1rem;padding:.25rem .4rem;border-radius:8px}
+  .icon-btn:hover{color:var(--danger);background:#2a1620}
+  input[type=text],input[type=password]{width:100%;background:#0e0e16;border:1px solid var(--line);
+       color:var(--txt);border-radius:9px;padding:.55rem .7rem;font-size:.92rem;font-family:inherit}
+  input:focus{outline:none;border-color:var(--accent)}
+  .row{display:flex;gap:8px;align-items:center}
+  .wrap{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  /* login */
+  #login{max-width:380px;margin:8vh auto 0}
+  /* toolbar */
+  #bar{position:sticky;top:0;z-index:5;background:rgba(10,10,15,.82);backdrop-filter:blur(8px);
+       border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;margin-bottom:16px;
+       display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  #status{font-size:.85rem;color:var(--muted)}
+  .chip{font-size:.78rem;padding:.25rem .55rem;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+  .chip.on{color:var(--ok);border-color:#1c5e44;background:#0e2a20}
+  .chip.off{color:var(--warn);border-color:#5e4a1c;background:#2a230e}
+  /* genre cards */
+  .genre{margin-bottom:14px}
+  .genre-head{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+  .genre-head .name{flex:1;font-weight:700;font-size:1.02rem}
+  .qrow{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+  .qrow .num{color:var(--muted);font-size:.8rem;min-width:18px;text-align:center}
+  .results{margin-top:8px;border-top:1px dashed var(--line);padding-top:8px;font-size:.86rem}
+  .results .meta{color:var(--muted);margin-bottom:6px}
+  .song{display:flex;gap:8px;padding:.2rem 0;border-bottom:1px solid #1c1c28}
+  .song .t{font-weight:600}.song .a{color:var(--muted)}
+  .err{color:var(--danger);font-size:.85rem;margin-top:6px;min-height:1em}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--accent2);
+        border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .hint{color:var(--muted);font-size:.82rem;line-height:1.5}
+  a{color:var(--accent2)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login" class="card">
+  <h1>ניהול פלייליסטים</h1>
+  <div class="sub">שיר בריבוע — אזור מנהל</div>
+  <label class="hint">סיסמת מנהל</label>
+  <div class="row" style="margin:6px 0 4px">
+    <input type="password" id="pw" placeholder="הקלד סיסמה" autocomplete="current-password">
+    <button class="btn" id="loginBtn">כניסה</button>
+  </div>
+  <div class="err" id="loginErr"></div>
+  <div class="hint" style="margin-top:10px">הסיסמה נקבעת בשרת דרך משתנה הסביבה <code>ADMIN_PASSWORD</code> (ברירת מחדל זמנית: <code>change-me</code>).</div>
+</div>
+
+<!-- EDITOR -->
+<div id="app" style="display:none">
+  <h1>ניהול פלייליסטים</h1>
+  <div class="sub">ערוך את השאילתות לכל ז'אנר, בדוק מה ספוטיפיי מחזיר, ושמור. השינויים חלים על כל משחק חדש.</div>
+
+  <div id="bar">
+    <button class="btn ok" id="saveBtn">💾 שמור שינויים</button>
+    <button class="btn sec sm" id="addGenreBtn">＋ ז'אנר</button>
+    <button class="btn ghost sm" id="reloadBtn">↻ טען מחדש</button>
+    <button class="btn ghost sm" id="resetBtn">שחזר ברירת מחדל</button>
+    <span id="status"></span>
+    <span style="flex:1"></span>
+    <span class="chip" id="spotifyChip">ספוטיפיי…</span>
+  </div>
+
+  <div id="genres"></div>
+
+  <div class="hint" style="margin-top:18px">
+    טיפ: כפתור <b>בדוק</b> ליד כל שאילתה מריץ חיפוש אמיתי בספוטיפיי ומציג רק שירים ששמם בעברית — בדיוק כמו במשחק.
+    כדי שהבדיקה תעבוד, פתח קודם את <a href="/" target="_blank">המשחק</a> והתחבר לספוטיפיי באותו דפדפן.
+  </div>
+</div>
+
+<script>
+const HEBREW_RE = /[\u05D0-\u05EA]/;
+let genres = [];        // [{name, queries:[...]}]
+let dirty = false;
+let adminPw = '';
+
+const $ = s => document.querySelector(s);
+const setStatus = (t,c) => { const e=$('#status'); e.textContent=t; e.style.color=c||'var(--muted)'; };
+function markDirty(){ dirty = true; setStatus('• יש שינויים שלא נשמרו','var(--warn)'); }
+
+// ── Auth ───────────────────────────────────────────────
+$('#loginBtn').onclick = login;
+$('#pw').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
+async function login(){
+  const pw = $('#pw').value;
+  $('#loginErr').textContent='';
+  try{
+    const r = await fetch('/api/admin/check',{method:'POST',headers:{'x-admin-password':pw}});
+    const d = await r.json();
+    if(!d.ok){ $('#loginErr').textContent='סיסמה שגויה'; return; }
+    adminPw = pw;
+    $('#login').style.display='none';
+    $('#app').style.display='block';
+    await loadGenres();
+    refreshSpotifyChip();
+  }catch(e){ $('#loginErr').textContent='שגיאת רשת: '+e.message; }
+}
+
+// ── Load / Save ────────────────────────────────────────
+async function loadGenres(){
+  const r = await fetch('/api/genres');
+  const obj = await r.json();
+  genres = Object.entries(obj).map(([name,queries]) => ({ name, queries:[...queries] }));
+  dirty = false; setStatus('נטען','var(--muted)');
+  render();
+}
+
+async function save(){
+  // build object, check duplicate / empty names
+  const out = {}; 
+  for(const g of genres){
+    const name = g.name.trim();
+    if(!name){ setStatus('✕ יש ז\'אנר ללא שם','var(--danger)'); return; }
+    if(out[name]){ setStatus('✕ שם ז\'אנר כפול: '+name,'var(--danger)'); return; }
+    const qs = g.queries.map(q=>q.trim()).filter(Boolean);
+    if(!qs.length){ setStatus('✕ לז\'אנר "'+name+'" אין שאילתות','var(--danger)'); return; }
+    out[name] = qs;
+  }
+  setStatus('שומר…');
+  try{
+    const r = await fetch('/api/admin/genres',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-admin-password':adminPw},
+      body: JSON.stringify(out)
+    });
+    const d = await r.json();
+    if(!r.ok){ setStatus('✕ '+(d.error||'שמירה נכשלה'),'var(--danger)'); return; }
+    dirty=false; setStatus('✓ נשמר בהצלחה','var(--ok)');
+  }catch(e){ setStatus('✕ '+e.message,'var(--danger)'); }
+}
+
+$('#saveBtn').onclick = save;
+$('#reloadBtn').onclick = async () => {
+  if(dirty && !confirm('יש שינויים שלא נשמרו. לטעון מחדש ולאבד אותם?')) return;
+  await loadGenres();
+};
+$('#resetBtn').onclick = () => {
+  if(!confirm('לשחזר את כל הז\'אנרים לברירת המחדל? (ייכנס לתוקף רק אחרי שמירה)')) return;
+  genres = DEFAULTS.map(g => ({name:g.name, queries:[...g.queries]}));
+  markDirty(); render();
+};
+$('#addGenreBtn').onclick = () => {
+  genres.push({ name:'ז\'אנר חדש', queries:[''] });
+  markDirty(); render();
+  // focus the new genre name
+  const inputs = document.querySelectorAll('.genre .name'); inputs[inputs.length-1]?.focus();
+};
+
+// ── Render ─────────────────────────────────────────────
+function render(){
+  const root = $('#genres'); root.innerHTML='';
+  genres.forEach((g, gi) => {
+    const card = document.createElement('div'); card.className='card genre';
+
+    // header
+    const head = document.createElement('div'); head.className='genre-head';
+    const name = document.createElement('input');
+    name.type='text'; name.className='name'; name.value=g.name;
+    name.oninput = e => { g.name=e.target.value; markDirty(); };
+    const testG = mkBtn('בדוק ז\'אנר','btn sec sm', ()=>previewGenre(gi));
+    const delG = document.createElement('button'); delG.className='icon-btn'; delG.title='מחק ז\'אנר'; delG.textContent='🗑';
+    delG.onclick = () => { if(confirm('למחוק את "'+g.name+'"?')){ genres.splice(gi,1); markDirty(); render(); } };
+    head.append(name, testG, delG);
+    card.appendChild(head);
+
+    // queries
+    g.queries.forEach((q, qi) => {
+      const row = document.createElement('div'); row.className='qrow';
+      const num = document.createElement('span'); num.className='num'; num.textContent=(qi+1);
+      const inp = document.createElement('input');
+      inp.type='text'; inp.value=q; inp.placeholder='שאילתת חיפוש…';
+      inp.oninput = e => { g.queries[qi]=e.target.value; markDirty(); };
+      const test = mkBtn('בדוק','btn sec sm', ()=>previewQuery(gi, qi));
+      const del = document.createElement('button'); del.className='icon-btn'; del.title='מחק שאילתה'; del.textContent='✕';
+      del.onclick = () => { g.queries.splice(qi,1); markDirty(); render(); };
+      row.append(num, inp, test, del);
+      card.appendChild(row);
+    });
+
+    const addQ = mkBtn('＋ הוסף שאילתה','btn ghost sm', ()=>{ g.queries.push(''); markDirty(); render(); });
+    addQ.style.marginTop='4px';
+    card.appendChild(addQ);
+
+    const res = document.createElement('div'); res.className='results'; res.id='res-'+gi; res.style.display='none';
+    card.appendChild(res);
+
+    root.appendChild(card);
+  });
+}
+function mkBtn(label,cls,fn){ const b=document.createElement('button'); b.className=cls; b.textContent=label; b.onclick=fn; return b; }
+
+// ── Spotify preview ────────────────────────────────────
+function getToken(){ return localStorage.getItem('at') || ''; }
+function refreshSpotifyChip(){
+  const chip = $('#spotifyChip');
+  if(getToken()){ chip.textContent='✓ ספוטיפיי מחובר'; chip.className='chip on'; }
+  else { chip.textContent='ספוטיפיי לא מחובר'; chip.className='chip off'; }
+}
+window.addEventListener('storage', refreshSpotifyChip);
+
+async function spotifySearch(q){
+  const token = getToken();
+  if(!token) throw { code:'no_token' };
+  const url = 'https://api.spotify.com/v1/search?q='+encodeURIComponent(q)+'&type=track&market=from_token&limit=10';
+  const r = await fetch(url,{headers:{Authorization:'Bearer '+token}});
+  if(r.status===401){ localStorage.removeItem('at'); refreshSpotifyChip(); throw { code:'expired' }; }
+  if(!r.ok) throw { code:'http', status:r.status };
+  const d = await r.json();
+  return (d.tracks?.items || []);
+}
+
+function tokenHintHTML(kind){
+  const msg = kind==='expired'
+    ? 'החיבור לספוטיפיי פג תוקף. '
+    : 'אין חיבור פעיל לספוטיפיי. ';
+  return '<div class="meta" style="color:var(--warn)">'+msg+
+    'פתח את <a href="/" target="_blank">המשחק</a>, התחבר לספוטיפיי, וחזור (אותו דפדפן).</div>';
+}
+
+async function previewQuery(gi, qi){
+  const q = genres[gi].queries[qi].trim();
+  const box = openResults(gi);
+  if(!q){ box.innerHTML='<div class="meta">שאילתה ריקה</div>'; return; }
+  box.innerHTML = '<div class="meta"><span class="spin"></span> בודק: "'+esc(q)+'"…</div>';
+  try{
+    const items = await spotifySearch(q);
+    renderResults(box, [{q, items}], 'שאילתה: "'+q+'"');
+  }catch(e){ box.innerHTML = errHTML(e); }
+}
+
+async function previewGenre(gi){
+  const g = genres[gi];
+  const qs = g.queries.map(q=>q.trim()).filter(Boolean);
+  const box = openResults(gi);
+  if(!qs.length){ box.innerHTML='<div class="meta">אין שאילתות</div>'; return; }
+  box.innerHTML = '<div class="meta"><span class="spin"></span> בודק '+qs.length+' שאילתות עבור "'+esc(g.name)+'"…</div>';
+  try{
+    const groups = [];
+    for(const q of qs){ groups.push({ q, items: await spotifySearch(q) }); }
+    renderResults(box, groups, 'ז\'אנר: "'+g.name+'"', true);
+  }catch(e){ box.innerHTML = errHTML(e); }
+}
+
+function renderResults(box, groups, heading, combined){
+  // dedupe by id across groups, keep only Hebrew-titled (matches the game's filter)
+  const seen = new Set(); let kept=[]; let raw=0, nonHeb=0;
+  for(const grp of groups){
+    for(const t of (grp.items||[])){
+      raw++;
+      const title = t.name||'';
+      if(!HEBREW_RE.test(title)){ nonHeb++; continue; }
+      if(seen.has(t.id)) continue;
+      seen.add(t.id);
+      kept.push({ title, artist:(t.artists||[]).map(a=>a.name).join(', '), year:(t.album?.release_date||'').slice(0,4) });
+    }
+  }
+  box.innerHTML='';
+  const meta = document.createElement('div'); meta.className='meta';
+  meta.textContent = (combined? 'סה\u05F4כ ' : '')+kept.length+' שירים בעברית'+
+    (nonHeb? ' · '+nonHeb+' סוננו (שם לא בעברית)' : '')+' · מתוך '+raw+' תוצאות גולמיות';
+  box.appendChild(meta);
+  if(!kept.length){
+    const w=document.createElement('div'); w.className='meta'; w.style.color='var(--warn)';
+    w.textContent='לא נמצאו שירים בעברית — כדאי לנסח את השאילתה אחרת.';
+    box.appendChild(w); return;
+  }
+  kept.slice(0,40).forEach(s=>{
+    const row=document.createElement('div'); row.className='song';
+    const t=document.createElement('span'); t.className='t'; t.textContent=s.title;
+    const a=document.createElement('span'); a.className='a'; a.textContent='— '+s.artist+(s.year?(' ('+s.year+')'):'');
+    row.append(t,a); box.appendChild(row);
+  });
+  if(kept.length>40){ const m=document.createElement('div'); m.className='meta'; m.textContent='…ועוד '+(kept.length-40); box.appendChild(m); }
+}
+
+function openResults(gi){ const b=$('#res-'+gi); b.style.display='block'; return b; }
+function errHTML(e){
+  if(e && (e.code==='no_token'||e.code==='expired')) return tokenHintHTML(e.code);
+  return '<div class="meta" style="color:var(--danger)">שגיאה'+(e&&e.status?(' ('+e.status+')'):'')+' בחיפוש</div>';
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+window.addEventListener('beforeunload', e => { if(dirty){ e.preventDefault(); e.returnValue=''; } });
+
+// Defaults for the "restore" button (kept in sync with the server seed).
+const DEFAULTS = [
+  {name:'פופ ישראלי',   queries:['פופ ישראלי','פופ ישראלי: הלהיטים','פופ ישראלי ישן','פופ ישראלי חדש','הלהיטים הגדולים של ישראל']},
+  {name:'רוק ישראלי',   queries:['קלאסיקות רוק ישראלי','רוק ישראלי מקפיץ','רוק ישראלי ישן וטוב','מסיבת רוק ישראלית','רוק ישראלי מאז ועד היום']},
+  {name:'מזרחי',        queries:['ים תיכוני: הלהיטים','מזרחית ישנה','מזרחית ישנה וטובה','מזרחית ליום שישי','מסיבה מזרחית']},
+  {name:'פסטיגלים',     queries:['פסטיגלים מכל הזמנים','שירי פסטיגל אהובים ביותר','שירי פסטיגלים מכל הזמנים','פלייליסט פסטיגלים','שירי פסטיגל - מכל הזמנים']},
+  {name:'שירים מסרטים', queries:['שירים מסרטים ישראלים','פסקול ישראלי - שירים מסרטים ישראלים','רק השירים הישראלים הכי יפים אי פעם']},
+];
+
+$('#pw').focus();
+</script>
+</body>
+</html>
